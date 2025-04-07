@@ -1,0 +1,33 @@
+# Reduce Costs Prompt Examples
+
+## Prompt:
+What product should I remove from the menu?
+
+### StratPilot Response:
+The Strawberry Cheesecake hasn't sold in the last 21 days.
+It also had the highest waste report in the last 2 months.
+
+🧠 Recommendation:
+Pause this item for now and consider replacing it with a seasonal fruit tart which performed better last summer.
+
+---
+
+## Prompt:
+How can I reduce food waste?
+
+### StratPilot Response:
+Your prep volume for Tuna Sandwiches exceeds the 7-day average sales by 40%.
+
+🧠 Recommendation:
+Reduce batch size by 30%. Monitor demand weekly and re-adjust.
+
+---
+
+## Prompt:
+Are my discounts actually helping?
+
+### StratPilot Response:
+Your 20% discount on Chocolate Cake increased sales by 8%, but dropped gross profit by 12%.
+
+🧠 Recommendation:
+Next time, try a smaller 10% discount or offer it as a loyalty reward to preserve margins.
