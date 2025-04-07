@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from streamlit_extras.switch_page_button import switch_page
 
 st.set_page_config(page_title="StratPilot - Business Setup", layout="wide")
 st.title("StratPilot – Business & Data Setup")
@@ -69,4 +68,4 @@ if st.session_state.datasets:
 # Save and proceed
 if st.button("Save & Proceed to StratPilot"):
     st.success("Business information and schema saved.")
-    switch_page("StratPilot_AI_Assistant")
+    st.switch_page("pages/2_StratPilot_AI_Assistant.py") 

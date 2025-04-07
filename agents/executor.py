@@ -8,7 +8,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import json
 import re
-
+import streamlit as st
 load_dotenv()
 client = OpenAI()
 
@@ -59,10 +59,12 @@ def highlight_insights(output_text):
     Returns: {"show": bool, "text": str}
     """
     prompt = f"""
-You are an AI assistant reviewing a data analysis output.
-Your task:
-1. Summarize the most important business insight.
-2. Decide whether it's meaningful enough to show in the UI.
+You are a senior business consultant reviewing the results of a data analysis task.
+
+Your job is to:
+1. Summarize the most important business insight clearly and concisely — as if you are speaking to a CEO.
+2. Focus not just on what the data says, but what it means: highlight risks, opportunities, patterns, or strategic takeaways.
+3. Decide whether this insight is meaningful enough to display in the user interface.
 
 Return JSON like:
 {{"show": true, "text": "This is the insight"}}
@@ -102,7 +104,7 @@ def execute_plan(plan, datasets, schemas,business_profile):
     ])
     available_dfs = {f"{sanitize(name)}_df": df.copy() for name, df in datasets.items()}
 
-    for task in plan:
+    for i, task in enumerate(plan):
         task_description = task.get("description", "")
         system_prompt = (
             "You are a Python data analyst. Use the provided dataframes to perform the task below.\n"
@@ -132,54 +134,54 @@ Task: {task_description}
 
 Respond ONLY with valid Python code.
 """
+        with st.spinner(f"🧠 Running step {i+1} of {len(plan)}..."):
+            try:
+                logger.info("📤 [GPT PROMPT]\n%s\n---", user_prompt)
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    temperature=0.3,
+                    max_tokens=1200
+                )
 
-        try:
-            logger.info("📤 [GPT PROMPT]\n%s\n---", user_prompt)
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt}
-                ],
-                temperature=0.3,
-                max_tokens=1200
-            )
+                code = response.choices[0].message.content
+                logger.info("📥 [GPT RESPONSE]\n%s\n---", code)
 
-            code = response.choices[0].message.content
-            logger.info("📥 [GPT RESPONSE]\n%s\n---", code)
+                code = strip_code_block(code)
+                code = code.replace("plt.show()", "")
+                exec_env = {**available_dfs, "pd": pd, "plt": plt}
 
-            code = strip_code_block(code)
-            code = code.replace("plt.show()", "")
-            exec_env = {**available_dfs, "pd": pd, "plt": plt}
+                stdout_capture = io.StringIO()
+                chart_path = None
 
-            stdout_capture = io.StringIO()
-            chart_path = None
+                with contextlib.redirect_stdout(stdout_capture):
+                    exec(code, exec_env)
+                    fig = plt.gcf()
+                    if fig.get_axes():
+                        chart_path = f"/tmp/chart_{task['step']}.png"
+                        fig.savefig(chart_path)
+                        plt.close(fig)
 
-            with contextlib.redirect_stdout(stdout_capture):
-                exec(code, exec_env)
-                fig = plt.gcf()
-                if fig.get_axes():
-                    chart_path = f"/tmp/chart_{task['step']}.png"
-                    fig.savefig(chart_path)
-                    plt.close(fig)
+                output_text = stdout_capture.getvalue().strip()
+                explanation = explain_code(code)
+                highlight_result = highlight_insights(output_text)
+                logger.info("🧾 [Code Explanation]\n%s", explanation)
+                logger.info("✨ [Insight Highlight]\n%s", highlight_result)
 
-            output_text = stdout_capture.getvalue().strip()
-            explanation = explain_code(code)
-            highlight_result = highlight_insights(output_text)
-            logger.info("🧾 [Code Explanation]\n%s", explanation)
-            logger.info("✨ [Insight Highlight]\n%s", highlight_result)
+                results.append({
+                    "summary": output_text or "✅ Code executed.",
+                    "chart": chart_path if chart_path else None,
+                    "code_explanation": explanation,
+                    "insight_highlights": highlight_result["text"],
+                    "show_insight": highlight_result["show"]
+                })
 
-            results.append({
-                "summary": output_text or "✅ Code executed.",
-                "chart": chart_path if chart_path else None,
-                "code_explanation": explanation,
-                "insight_highlights": highlight_result["text"],
-                "show_insight": highlight_result["show"]
-            })
-
-        except Exception as e:
-            results.append({
-                "summary": f"⚠️ Failed to execute '{task_description}': {e}"
-            })
+            except Exception as e:
+                results.append({
+                    "summary": f"⚠️ Failed to execute '{task_description}': {e}"
+                })
 
     return results

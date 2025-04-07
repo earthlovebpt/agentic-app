@@ -5,3 +5,5 @@ streamlit-extras
 openai
 streamlit-chat
 python-dotenv
+streamlit-extras
+tabulate

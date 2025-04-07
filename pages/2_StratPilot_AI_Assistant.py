@@ -4,6 +4,7 @@ from agents.executor import execute_plan
 from agents.reflector import reflect_on_results
 from agents.advisor import generate_advice
 from agents.explorer import explore_datasets_agentically
+from agents.suggestion import get_strategic_question_suggestions
 import pandas as pd
 import re
 
@@ -62,6 +63,25 @@ for dataset_name, bundle in st.session_state.datasets.items():
     if not column_descriptions or any(not desc.strip() for desc in column_descriptions.values()):
         validation_errors.append(f"Dataset `{dataset_name}` has incomplete column descriptions.")
 
+
+
+# 🔍 Generate Smart Strategic Question Suggestions after EDA
+if "strategic_suggestions" not in st.session_state.business_profile:
+    with st.spinner("🤖 Exploring your datasets..."):
+        st.session_state.exploration_summary = explore_datasets_agentically(all_dataframes, all_column_schemas)
+    with st.spinner("💡 Thinking of strategic questions you might ask..."):
+        st.session_state.business_profile["strategic_suggestions"] = get_strategic_question_suggestions(
+            st.session_state.business_profile
+        )
+
+# 💡 Display suggestions
+suggestions = st.session_state.business_profile.get("strategic_suggestions", [])
+if suggestions:
+    st.subheader("💡 Smart Starter: Strategic Questions You Might Ask")
+    for s in suggestions:
+        st.markdown(f"- {s}")
+    st.markdown("👉 *Use these as inspiration, or ask anything you'd like below.*")
+
 # Prompt input
 st.subheader("💬 Ask Your Business Question")
 prompt = st.text_input("For example: What should I promote this weekend?")
@@ -73,17 +93,12 @@ if st.button("Analyze"):
             st.markdown(f"- {err}")
         st.stop()
 
-
-    # Let GPT explore the datasets and build the data context itself
-    with st.spinner("🤖 Exploring your datasets..."):
-        exploration_summary = explore_datasets_agentically(all_dataframes, all_column_schemas)
-
     # Show the EDA summary in UI (optional but helpful)
     with st.expander("🧠 Auto-Explored Data Overview", expanded=False):
-        st.markdown(exploration_summary)
+        st.markdown(st.session_state.exploration_summary)
 
     # Pass that as the schema_context to the planner
-    st.session_state.business_profile["schema_context"] = exploration_summary
+    st.session_state.business_profile["schema_context"] = st.session_state.exploration_summary
 
     # Now run the planner with EDA-aware context
     with st.spinner("🧠 Planning your analysis..."):
