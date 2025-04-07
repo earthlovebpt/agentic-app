@@ -30,7 +30,7 @@ client = OpenAI()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def plan_tasks(user_prompt, business_profile):
+def plan_tasks(user_prompt, business_profile,is_replanned=False,prior_summary=None):
     business_type = business_profile.get("type", "")
     business_details = business_profile.get("details", "")
     schema_context = business_profile.get("schema_context", "")
@@ -54,6 +54,19 @@ Data Schema:
 
 User Question:
 {user_prompt}
+"""
+
+    if is_replanned and prior_summary:
+        full_context += f"""
+
+This is a continuation of a previous analysis.
+
+What has already been done:
+{prior_summary}
+
+Do NOT repeat these steps. Your task is to plan what to do next to help answer the user's question more completely.
+
+Focus on high-level, useful steps — not overly detailed ones.
 """
 
     logger.info("📤 [Planner Prompt]\n%s", full_context)

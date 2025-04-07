@@ -33,6 +33,35 @@ def sanitize(name):
 def strip_code_block(content):
     return content.strip().strip("`").replace("python", "").strip()
 
+def retry_error_code(error_msg,code):
+    system_prompt = (
+        "You are a Python code fixer. Your job is to fix broken Python code based on the error message.\n"
+        "Do not rewrite or change the task. Return only the corrected code — no comments or explanations."
+    )
+    user_prompt = f"""
+Your previous code failed with this error
+{error_msg}
+
+Here is your original code:
+{code}
+Please fix the code. Return only valid executable Python code.
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        temperature=0.2,
+        max_tokens=1200
+    )
+    code = response.choices[0].message.content
+    logger.info("📥 [Retry Fail⚠️: GPT RESPONSE]\n%s\n---", code)
+    code = strip_code_block(code)
+    code = code.replace("plt.show()", "")
+    return code
+
+
 def explain_code(code):
     prompt = (
         "Explain the following Python data analysis code in simple language. "
@@ -96,8 +125,7 @@ Analysis Output:
 
 
 
-def execute_plan(plan, datasets, schemas,business_profile):
-    results = []
+def execute_plan(plan, datasets, schemas,business_profile,results=[]):
 
     dataset_list = "\n".join([
         f"{sanitize(name)}_df: {schemas[name]}" for name in datasets
@@ -158,7 +186,12 @@ Respond ONLY with valid Python code.
                 chart_path = None
 
                 with contextlib.redirect_stdout(stdout_capture):
-                    exec(code, exec_env)
+                    try:
+                        exec(code, exec_env)
+                    except Exception as e:
+                        error_msg = str(e)
+                        code = retry_error_code(error_msg,code)
+                        exec(code, exec_env)
                     fig = plt.gcf()
                     if fig.get_axes():
                         chart_path = f"/tmp/chart_{task['step']}.png"
@@ -180,6 +213,7 @@ Respond ONLY with valid Python code.
                 })
 
             except Exception as e:
+                logger.info(f"⚠️ Failed to execute '{task_description}': {e}")
                 results.append({
                     "summary": f"⚠️ Failed to execute '{task_description}': {e}"
                 })

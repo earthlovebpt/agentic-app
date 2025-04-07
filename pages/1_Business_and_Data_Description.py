@@ -37,7 +37,7 @@ if uploaded_files:
 
         st.session_state.datasets[dataset_label] = {
             "data": df,
-            "description": "",
+            "description": dataset_label,
             "column_descriptions": column_descriptions
         }
 

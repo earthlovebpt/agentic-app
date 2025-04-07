@@ -101,17 +101,19 @@ if st.button("Analyze"):
     st.session_state.business_profile["schema_context"] = st.session_state.exploration_summary
 
     # Now run the planner with EDA-aware context
+    all_results = []
     with st.spinner("🧠 Planning your analysis..."):
         plan = plan_tasks(prompt, st.session_state.business_profile)
-    all_results = execute_plan(plan, all_dataframes, all_column_schemas,st.session_state.business_profile)
+    all_results = execute_plan(plan, all_dataframes, all_column_schemas,st.session_state.business_profile,all_results)
     with st.spinner("🧠 Reflecting on results..."):
         reflection = reflect_on_results(prompt, all_results)
 
     if reflection["replan"]:
         st.info("🔁 Replanning based on reflection...")
         with st.spinner("🧠 Planning your analysis..."):
-            plan = plan_tasks(reflection["new_prompt"], st.session_state.business_profile)
-        all_results = execute_plan(plan, all_dataframes, all_column_schemas,st.session_state.business_profile)
+            retry_plan = plan_tasks(reflection["new_prompt"], st.session_state.business_profile,True,reflection["prior_summary"])
+        all_results = execute_plan(retry_plan, all_dataframes, all_column_schemas,st.session_state.business_profile,all_results)
+        plan = plan+retry_plan
 
     with st.spinner("💡 Generating strategic advice..."):
         advice = generate_advice(prompt, all_results, st.session_state.business_profile)

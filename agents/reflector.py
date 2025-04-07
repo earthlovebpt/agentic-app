@@ -12,12 +12,20 @@ logger = logging.getLogger(__name__)
 
 def reflect_on_results(user_prompt, results):
     summaries = "\n".join([r.get("summary", "") for r in results])
-
     insight_highlight = "\n".join([r.get("insight_highlights", "") for r in results])
 
     system_prompt = (
-        "You are a reflection agent. Your job is to review the output from an analysis plan and determine "
-        "if it sufficiently addresses the user's question. If not, suggest a new improved version of the question."
+        "You are a reflection agent. Your job is to review the output from an analysis plan and determine:\n"
+        "- Whether it sufficiently answers the user's question\n"
+        "- If not, suggest a better follow-up version of the question\n"
+        "- Provide a summary of what was learned so far to inform the next planning step\n\n"
+        "You must respond in the following JSON format:\n"
+        "{\n"
+        "  \"replan\": true or false,\n"
+        "  \"new_prompt\": \"...\",         // a refined question if replan is needed\n"
+        "  \"prior_summary\": \"...\"       // what was learned, in a way useful for the planner\n"
+        "}\n\n"
+        "Do not explain or add commentary. Only return valid JSON."
     )
 
     reflection_prompt = f"""
@@ -30,8 +38,7 @@ Analysis Results:
 Insight Highlights:
 {insight_highlight}
 
-Do the results answer the question effectively? If not, suggest how to replan. Respond with:
-{{"replan": true/false, "new_prompt": "..."}}
+Based on the above, decide if further planning is needed. If yes, suggest a better next question and summarize what was already discovered.
 """
 
     try:
