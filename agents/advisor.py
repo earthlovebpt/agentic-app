@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def generate_advice(user_prompt, results, business_profile):
-    summaries = "\n".join([res["insight_highlights"] for res in results if "summary" in res])
+    insight_highlight = "\n".join([r.get("insight_highlights", "") for r in results])
     context = f"""
 You are an expert strategic business advisor helping entrepreneurs and small businesses make smarter, faster decisions.
 Your job is to analyze the business context, user’s question, and the analytical insights — and respond with clear, specific, and actionable business advice.
@@ -34,7 +34,7 @@ Prioritize actions that will help the business:
 {user_prompt}
 
 **Key Insights from Analysis:**  
-{summaries}
+{insight_highlight}
 """
 
     try:
