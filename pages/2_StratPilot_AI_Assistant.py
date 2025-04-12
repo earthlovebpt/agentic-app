@@ -135,4 +135,5 @@ if st.button("Analyze"):
 
 
     st.subheader("📈 Strategic Advice")
+    advice_markdown = "\n".join([f"###{a['suggestion_title']}\n\n{a['suggestion_description']}" for a in advice])
     st.markdown(advice)
