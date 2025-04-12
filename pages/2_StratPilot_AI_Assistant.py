@@ -1,12 +1,10 @@
 import streamlit as st
-from agents.planner import plan_tasks
-from agents.executor import execute_plan
-from agents.reflector import reflect_on_results
-from agents.advisor import generate_advice
-from agents.explorer import explore_datasets_agentically
-from agents.suggestion import get_strategic_question_suggestions
+from graphs.answer_graph import build_answer_graph
+from graphs.understand_graph import build_understand_graph  # if needed in later phases
+from graphs.state import AgentState
 import pandas as pd
 import re
+from copy import deepcopy
 
 def sanitize(name):
     """
@@ -18,14 +16,16 @@ def sanitize(name):
     """
     name = name.lower().strip()
     name = name.replace(" ", "_").replace("-", "_")
-    name = re.sub(r"\W", "", name)  # Remove all non-alphanumeric/underscore characters
+    name = re.sub(r"\W", "", name)
     if re.match(r"^\d", name):
-        name = f"df_{name}"  # Prefix if starts with a number
+        name = f"df_{name}"
     return name
 
+# Configure Streamlit layout and title
 st.set_page_config(page_title="StratPilot - AI Assistant", layout="wide")
 st.title("StratPilot – Your AI Business Consultant")
 
+# Check business profile
 if "business_profile" not in st.session_state or not st.session_state.business_profile:
     st.warning("Please fill in your business and data details first.")
     st.stop()
@@ -35,7 +35,7 @@ st.subheader("📋 Your Business Profile")
 st.markdown(f"**Business Type:** {st.session_state.business_profile.get('type', '')}")
 st.markdown(f"**Business Details:** {st.session_state.business_profile.get('details', '')}")
 
-# Display schema summaries
+# Display schema summaries and load datasets
 st.subheader("🧠 Data Schema Summary")
 all_dataframes = {}
 all_column_schemas = {}
@@ -55,7 +55,7 @@ for dataset_name, bundle in st.session_state.datasets.items():
         )
         st.table(schema_df)
 
-    # Validation
+    # Basic validation
     if df.empty:
         validation_errors.append(f"Dataset `{dataset_name}` is empty.")
     if not description:
@@ -63,77 +63,98 @@ for dataset_name, bundle in st.session_state.datasets.items():
     if not column_descriptions or any(not desc.strip() for desc in column_descriptions.values()):
         validation_errors.append(f"Dataset `{dataset_name}` has incomplete column descriptions.")
 
+# Check for new datasets (i.e. those that haven’t been explored)
+new_datasets = {}
+have_new_datasets = False
+explored = set(st.session_state.get("explored_datasets", []))
 
+for name, bundle in st.session_state.datasets.items():
+    if name not in explored:
+        new_datasets[name] = bundle
+        have_new_datasets = True
 
-# 🔍 Generate Smart Strategic Question Suggestions after EDA
-if "strategic_suggestions" not in st.session_state.business_profile:
-    with st.spinner("🤖 Exploring your datasets..."):
-        st.session_state.exploration_summary = explore_datasets_agentically(all_dataframes, all_column_schemas)
-    with st.spinner("💡 Thinking of strategic questions you might ask..."):
-        st.session_state.business_profile["strategic_suggestions"] = get_strategic_question_suggestions(
-            st.session_state.business_profile
+if new_datasets:
+    with st.spinner("🤖 Analyzing new datasets..."):
+        from copy import deepcopy
+        profile = deepcopy(st.session_state.business_profile)
+        datasets = deepcopy(st.session_state.datasets)
+
+        state = AgentState(
+            business_profile=profile,
+            datasets=datasets,
+            new_datasets=new_datasets,
+            schema_context=st.session_state.get("schema_context", ""),
+            explored_datasets=explored,
+            memory_log=st.session_state.get("memory_log", [])
         )
+        understand_graph = build_understand_graph()
+        result = understand_graph.invoke(state)
+        # Save updated state into session_state
+        st.session_state.strategic_suggestions = result['suggested_questions']
+        st.session_state.schema_context = result['schema_context']
+        st.session_state.explored_datasets = result['explored_datasets']
+        have_new_datasets = False
 
-# 💡 Display suggestions
-suggestions = st.session_state.business_profile.get("strategic_suggestions", [])
-if suggestions:
+if not have_new_datasets and ("schema_context" in st.session_state):
+    with st.expander("🧠 Auto-Explored Data Overview", expanded=False):
+        st.markdown(st.session_state.schema_context)
+
+# Display strategic suggestions
+if "strategic_suggestions" in st.session_state:
     st.subheader("💡 Smart Starter: Strategic Questions You Might Ask")
-    for s in suggestions:
+    for s in st.session_state.strategic_suggestions:
         st.markdown(f"- {s}")
     st.markdown("👉 *Use these as inspiration, or ask anything you'd like below.*")
+    # Prompt input from the user for the answer phase
+    st.subheader("💬 Ask Your Business Question")
+    user_question = st.text_input("For example: What should I promote this weekend?")
 
-# Prompt input
-st.subheader("💬 Ask Your Business Question")
-prompt = st.text_input("For example: What should I promote this weekend?")
-
+# Validate before proceeding
 if st.button("Analyze"):
     if validation_errors:
         st.error("❌ Please fix the following issues before proceeding:")
         for err in validation_errors:
             st.markdown(f"- {err}")
         st.stop()
+    
+    # Prepare the state for the answer graph
+    from graphs.answer_graph import build_answer_graph
+    from graphs.state import AgentState
 
-    # Show the EDA summary in UI (optional but helpful)
-    with st.expander("🧠 Auto-Explored Data Overview", expanded=False):
-        st.markdown(st.session_state.exploration_summary)
+    # Deepcopy to preserve session state
+    profile = deepcopy(st.session_state.business_profile)
+    datasets = deepcopy(st.session_state.datasets)
+    schema_context = st.session_state.get("schema_context", "")
 
-    # Pass that as the schema_context to the planner
-    st.session_state.business_profile["schema_context"] = st.session_state.exploration_summary
+    # Initialize the AgentState for answer_graph with the user's question
+    answer_state = AgentState(
+        business_profile=profile,
+        datasets=datasets,
+        schema_context=schema_context,
+        user_prompt=user_question,
+        memory_log=st.session_state.get("memory_log", [])
+    )
 
-    # Now run the planner with EDA-aware context
-    all_results = []
-    with st.spinner("🧠 Planning your analysis..."):
-        plan = plan_tasks(prompt, st.session_state.business_profile)
-    all_results = execute_plan(plan, all_dataframes, all_column_schemas,st.session_state.business_profile,all_results)
-    with st.spinner("🧠 Reflecting on results..."):
-        reflection = reflect_on_results(prompt, all_results)
+    # Build and run the answer graph
+    answer_graph = build_answer_graph()
+    final_state = answer_graph.invoke(answer_state)
 
-    if reflection["replan"]:
-        st.info("🔁 Replanning based on reflection...")
-        with st.spinner("🧠 Planning your analysis..."):
-            retry_plan = plan_tasks(reflection["new_prompt"], st.session_state.business_profile,True,reflection["prior_summary"])
-        all_results = execute_plan(retry_plan, all_dataframes, all_column_schemas,st.session_state.business_profile,all_results)
-        plan = plan+retry_plan
+    print(final_state)
 
-    with st.spinner("💡 Generating strategic advice..."):
-        advice = generate_advice(prompt, all_results, st.session_state.business_profile)
+    # # Display outputs from the answer graph
+    # st.subheader("📌 Answer to Your Question")
+    # st.markdown(final_state['answer_to_question'] or "No direct answer was generated.")
 
-    st.subheader("📊 Analysis Results")
-    for i, res in enumerate(all_results):
-        step_desc = plan[i]["description"]
-        with st.expander(f"🧠 Step {i + 1}: {step_desc}", expanded=True):
+    # st.subheader("🔍 Key Insights")
+    # st.markdown(final_state['insight_summary'] or "No insights available.")
 
-            if res.get("chart"):
-                st.image(res["chart"])
+    # st.subheader("✅ Recommended Actions")
+    # if final_state.recommended_actions:
+    #     for action in final_state['recommended_actions']:
+    #         st.markdown(f"- {action}")
+    # else:
+    #     st.markdown("No recommendations provided.")
 
-            if res.get("show_insight") and res.get("insight_highlights"):
-                st.success(res["insight_highlights"])
-
-        if "code_explanation" in res and res["code_explanation"].strip():
-            with st.expander(f"🧾 Show code explanation for Step {i}", expanded=False):
-                st.markdown(res["code_explanation"])
-
-
-    st.subheader("📈 Strategic Advice")
-    advice_markdown = "\n".join([f"###{a['suggestion_title']}\n\n{a['suggestion_description']}" for a in advice])
-    st.markdown(advice)
+    # # If the retry limit was exceeded or the analysis failed
+    # if hasattr(final_state, "retry_exceeded") and final_state.retry_exceeded:
+    #     st.warning("⚠️ The assistant could not complete the analysis after multiple attempts.")
