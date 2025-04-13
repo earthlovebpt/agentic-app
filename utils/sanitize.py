@@ -14,3 +14,6 @@ def sanitize(name):
     if re.match(r"^\d", name):
         name = f"df_{name}"  # Prefix if starts with a number
     return name
+
+def strip_code_block(content):
+    return content.strip().strip("`").replace("python", "").strip()

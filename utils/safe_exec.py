@@ -2,6 +2,7 @@ import io
 import contextlib
 import matplotlib.pyplot as plt
 import pandas as pd
+import traceback
 
 def execute_python_code(code: str, dataframes: dict):
     exec_env = {**dataframes, "pd": pd, "plt": plt}
@@ -18,6 +19,6 @@ def execute_python_code(code: str, dataframes: dict):
                 fig.savefig(chart_path)
                 plt.close(fig)
     except Exception as e:
-        error = str(e)
+        error = traceback.format_exc()
 
     return stdout.getvalue().strip(), error, chart_path

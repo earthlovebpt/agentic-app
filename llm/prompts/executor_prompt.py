@@ -2,7 +2,7 @@ from langchain.prompts import ChatPromptTemplate
 
 EXECUTOR_SYSTEM = (
     "You are a Python data analyst. Use the provided dataframes to perform the task below.\n"
-    "The dataframe is already loaded in memory. Use the provided variable name exactly as given.\n"
+    "The dataframe is already loaded in memory. Use the provided variable name exactly as given and use only the column names that are in the given schema context.\n"
     "Do not recreate or reassign the dataframe. Only use the variable as-is.\n"
     "The available pandas DataFrames are:\n"
     "{dataset_list}\n\n"
@@ -25,6 +25,10 @@ Required Variables: {required_variables}
 
 Schema Context:
 {schema_context}
+
+Error Message from Previous Run (if any): {error_message}
+
+If an error message is provided (i.e. it is not empty), generate new code that addresses and fixes this error.
 
 Respond with valid Python code only.
 """
