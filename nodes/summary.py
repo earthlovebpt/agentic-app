@@ -14,18 +14,20 @@ def summary_node(state: AgentState) -> AgentState:
         chart_path = res.get("chart")
         if chart_path:
             # Use index-based references (adjust as needed).
-            chart_refs.append(f"Step {idx+1} (Chart ID: chart_{idx+1}): {chart_path}")
+            chart_refs.append(f"Step {idx+1} - Chart Title:{res.get('chart_title')}: (Chart ID: chart_{idx+1}): {chart_path}")
     charts_info = "\n".join(chart_refs) if chart_refs else "No visual evidence available."
     
     inputs = {
         "business_type": state.business_profile.get("type", ""),
         "business_details": state.business_profile.get("details", ""),
-        "schema_context": state.business_profile.get("schema_context", ""),
+        "schema_context": state.schema_context,
         "user_prompt": state.user_prompt,
         "results": summaries,
         "charts_info": charts_info,
         "prior_summary": state.prior_summary or "",
     }
+
+    logger.info("charts_info: %s", charts_info)
     
     logger.info("📤 [Summary Node Input]\n%s", inputs)
     
