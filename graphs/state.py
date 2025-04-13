@@ -55,3 +55,5 @@ class AgentState(BaseModel):
     exceed_max_retries: bool = False
 
     update_dataframes: Optional[Dict[str, Any]] = None
+
+    variable_env: Optional[Dict[str, Any]] = None

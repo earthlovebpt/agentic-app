@@ -99,11 +99,10 @@ if "strategic_suggestions" in st.session_state:
     st.subheader("💡 Smart Starter: Strategic Questions You Might Ask")
     for s in st.session_state.strategic_suggestions:
         st.markdown(f"- {s}")
-    st.markdown("👉 *Use these as inspiration, or ask anything you'd like below.*")
 
 # Prompt input for the answer phase
 st.subheader("💬 Ask Your Business Question")
-user_question = st.text_input("For example: What should I promote this weekend?")
+user_question = st.text_input("👉 *Use these as inspiration, or ask anything you'd like below.*")
 
 if st.button("Analyze"):
     if validation_errors:
@@ -133,7 +132,7 @@ if st.button("Analyze"):
     if not final_state['data_sufficient']:
         st.subheader("🚫 Not Enough Data")
         st.warning("Not enough data was provided to answer your question.")
-        for rec in final_state['recommendations']:
+        for rec in final_state['recommendations_if_insufficient']:
             st.markdown(f"- {rec}")
     
     # Display final outputs from the answer graph
@@ -160,6 +159,7 @@ if st.button("Analyze"):
         chart_id = res.get("chart_id")
         # Only show the chart if the chart_id is mentioned in the final summary text
         if chart_id and chart_id in combined_summary:
+            st.markdown(f'{res.get("chart_id")}: {res.get("chart_title")}')
             st.image(res.get("chart"), use_column_width=True, caption=f"Chart from Step {i+1} ({chart_id})")
             chart_found = True
     if not chart_found:
