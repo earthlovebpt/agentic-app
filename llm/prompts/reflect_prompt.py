@@ -17,9 +17,6 @@ Original User Question:
 Analysis Step Outputs:
 {summaries}
 
-Highlighted Insights:
-{insight_highlights}
-
 Respond with:
 - replan: true or false
 - new_prompt: a better reformulated version of the question

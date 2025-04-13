@@ -1,8 +1,9 @@
 from graphs.state import AgentState
 import pandas as pd
 import logging
+from utils.sanitize import sanitize
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("stratpilot")
 
 def summarize_column(col, series: pd.Series, user_desc: str) -> str:
     dtype = str(series.dtype)
@@ -26,6 +27,7 @@ def summarize_column(col, series: pd.Series, user_desc: str) -> str:
 
 def summarize_dataset(name, df: pd.DataFrame, table_desc: str, col_descs: dict) -> str:
     lines = [f"📁 `{name}` — {table_desc or 'No table description provided.'}"]
+    lines.append(f"\nLoaded datasets variable: {sanitize(name)}_df")
     for col in df.columns:
         desc = col_descs.get(col, "")
         lines.append(summarize_column(col, df[col], desc))
