@@ -12,7 +12,7 @@ def executor_node(state: AgentState) -> AgentState:
     dataset_list = [
         f"{sanitize(name)}_df" for name in state.datasets
     ]
-    available_dfs = {f"{sanitize(name)}_df": df['data'].copy() for name, df in state.datasets.items()}
+    available_dfs = {f"{sanitize(name)}_df": df['data'].copy() for name, df in state.datasets.items()} if not state.update_dataframes else state.update_dataframes
     # Extract the current step from the plan (assuming it is already validated)
     step = state.plan[current_index]
     
@@ -34,7 +34,9 @@ def executor_node(state: AgentState) -> AgentState:
     logger.info("🧠 [Executor Generated Code]\n%s", code)
     
     # Execute the generated code safely and capture output, error, and any chart produced
-    output, error, chart_path = execute_python_code(strip_code_block(code), available_dfs)
+    output, error, chart_path, chart_title, updated_dataframes  = execute_python_code(strip_code_block(code), available_dfs)
+
+    state.update_dataframes = updated_dataframes
     
     logger.info("📤 [Executor Output]\n%s", output)
     logger.info("📤 [Executor Error]\n%s", error)
@@ -52,6 +54,7 @@ def executor_node(state: AgentState) -> AgentState:
         "summary": output,
         "chart": chart_path,
         "chart_id": chart_id,
+        "chart_title": chart_title,
         "step_description": step.description
     }
     

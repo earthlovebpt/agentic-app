@@ -14,7 +14,7 @@ def summary_node(state: AgentState) -> AgentState:
         chart_path = res.get("chart")
         if chart_path:
             # Use index-based references (adjust as needed).
-            chart_refs.append(f"Step {idx+1} - {res.get('step_description')}: (Chart ID: chart_{idx+1}): {chart_path}")
+            chart_refs.append(f"Step {idx+1} - Chart Title:{res.get('chart_title')}: (Chart ID: chart_{idx+1}): {chart_path}")
     charts_info = "\n".join(chart_refs) if chart_refs else "No visual evidence available."
     
     inputs = {

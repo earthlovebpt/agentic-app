@@ -12,7 +12,7 @@ EXECUTOR_SYSTEM = (
     "print(top_products_df.head())\n\n"
     "Avoid printing full dataframes if they are too large; use .head(), .value_counts(), etc.\n"
     "Do not include any explanations, comments, or markdown — return only valid, executable Python code.\n"
-    "Use pandas and matplotlib for analysis and visualization. If a chart would help answer the question or clarify insights, include code to generate and display (or save) the chart.\n"
+    "Use pandas and matplotlib for analysis and visualization. If a chart would help answer the question or clarify insights, include code to generate, set a title (e.g. using plt.title('Your Chart Title')), and display (or save) the chart.\n"
     "Return only the code."
 )
 
@@ -30,7 +30,7 @@ Schema Context:
 Error Message from Previous Run (if any): {error_message}
 
 If an error message is provided (i.e. it is not empty), generate new code that addresses and fixes this error.
-If a chart visualization would help answer the question or clarify insights, include code using matplotlib to generate and display (or save) the chart.
+If a chart visualization would help answer the question or clarify insights, include code using matplotlib to generate and display (or save) the chart, and set an appropriate title for the chart.
 
 Respond with valid Python code only.
 """
