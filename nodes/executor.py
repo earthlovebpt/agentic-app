@@ -29,8 +29,6 @@ def executor_node(state: AgentState) -> AgentState:
         "error_message": "" if state.retry_step else state.step_blocker
     }
     
-    logger.info("📤 [Executor Prompt Inputs]\n%s", inputs)
-    
     # Invoke the executor chain to generate Python code for this step
     code = executor_chain.invoke(inputs).content
     logger.info("🧠 [Executor Generated Code]\n%s", code)

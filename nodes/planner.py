@@ -4,15 +4,7 @@ from llm.chains.planner_chain import planner_chain
 from llm.chains.planner_replan_execution_chain import planner_replan_execution_chain
 from llm.chains.planner_replan_insufficient_chain import planner_replan_insufficient_chain
 
-from llm.prompts.planner_prompt import planner_prompt
-from llm.prompts.planner_replan_execution_prompt import planner_replan_execution_prompt
-from llm.prompts.planner_replan_insufficient_prompt import planner_replan_insufficient_prompt
-
-from llm.parsers.planner_parser import PlanOutput
-from langchain.output_parsers import PydanticOutputParser
-
 logger = logging.getLogger("stratpilot")
-parser = PydanticOutputParser(pydantic_object=PlanOutput)
 
 def planner(state: AgentState) -> AgentState:
     user_prompt = state.user_prompt or ""
@@ -31,7 +23,6 @@ def planner(state: AgentState) -> AgentState:
             "memory_log": memory_log,
         }
         chain = planner_replan_insufficient_chain
-        selected_prompt = planner_replan_insufficient_prompt
         state.retry_count += 1
     elif state.retry_step:
         logger.info("📛 Reason: Previous step failed to execute. Using execution replan chain.")
@@ -47,7 +38,6 @@ def planner(state: AgentState) -> AgentState:
             "memory_log": memory_log,
         }
         chain = planner_replan_execution_chain
-        selected_prompt = planner_replan_execution_prompt
         state.retry_count += 1
     else:
         logger.info("🧠 [Planner] Planning...")
@@ -60,13 +50,6 @@ def planner(state: AgentState) -> AgentState:
             "memory_log": memory_log,
         }
         chain = planner_chain
-        selected_prompt = planner_prompt
-
-    try:
-        formatted_prompt = selected_prompt.format(**inputs,format_instructions=parser.get_format_instructions())
-        logger.info("📤 [Planner Prompt]:\n%s", formatted_prompt)
-    except Exception as e:
-        logger.error("Error formatting planner prompt: %s", e)
 
     # 🔍 Generate revised plan
     steps = chain.invoke(inputs).steps
