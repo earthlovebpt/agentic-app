@@ -23,6 +23,9 @@ REPLAN_EXECUTION_TEMPLATE = """
 User Question:
 {user_prompt}
 
+Schema Context:
+{schema_context}
+
 Memory Log (completed insights and blockers):
 {memory_log}
 
@@ -37,9 +40,6 @@ Error or Problem:
 
 Variables available now:
 {required_variables}
-
-Remaining Steps:
-{remaining_plan}
 
 Instructions:
 - Replace the failed step and the remaining steps if needed.

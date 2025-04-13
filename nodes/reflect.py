@@ -2,16 +2,14 @@ from graphs.state import AgentState
 from llm.chains.reflect_chain import reflect_chain
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("stratpilot")
 
 def reflect_on_results_node(state: AgentState) -> AgentState:
     summaries = "\n".join([r.get("summary", "") for r in state.results or []])
-    insight_highlights = "\n".join([r.get("insight_highlights", "") for r in state.results or []])
 
     inputs = {
         "user_prompt": state.user_prompt,
         "summaries": summaries,
-        "insight_highlights": insight_highlights,
     }
 
     logger.info("📤 [Reflect Input]\n%s", inputs)

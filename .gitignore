@@ -5,3 +5,4 @@ __pycache__
 **/workspace
 **/env
 **/__pycache__
+app.log

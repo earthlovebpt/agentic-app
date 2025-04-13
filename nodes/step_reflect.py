@@ -1,7 +1,7 @@
 from graphs.state import AgentState
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("stratpilot")
 
 def step_reflect_node(state: AgentState) -> AgentState:
     results = state.results or []

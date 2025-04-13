@@ -16,13 +16,8 @@ Business Details: {business_details}
 Available Datasets and Schema:
 {schema_context}
 
-Based on this information, suggest 3–5 questions they could ask to gain insights or make better decisions.
-
-The questions should:
-- Be relevant to the business type and data
-- Encourage grouping, filtering, time-series, or customer behavior analysis
-- Mention relevant dataset or column names where possible
-- Avoid overly generic questions like "What should I do?"
+Suggest 3 to 5 high-impact business questions they should consider asking, based on their business and data. 
+The questions should help them uncover growth opportunities, reduce cost, or improve operations.
 
 Respond ONLY in this format:
 

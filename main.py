@@ -1,4 +1,7 @@
 import streamlit as st
+from logger_config import setup_logger
+logger = setup_logger()
+logger.info("StratPilot started.")
 
 st.set_page_config(page_title="Welcome to StratPilot", layout="wide")
 st.title("👋 Welcome to StratPilot")

@@ -22,7 +22,7 @@ Prior Summary:
 Memory Log (what was already tried or failed):
 {memory_log}
 
-Return a new list of analysis steps in this format:
+Return a new list of analysis steps in this format which include all the steps before the error and the new plan to fix the error and steps to answer the original question.:
 
 {format_instructions}
 
