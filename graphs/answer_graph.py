@@ -15,7 +15,6 @@ def build_answer_graph():
     builder.add_node("validate_data", validate_data_node)
     builder.add_node("planner", planner)
     builder.add_node("executor", executor_node)
-    builder.add_node("planner_retry", planner)
     builder.add_node("reflect_on_results", reflect_on_results_node)
     builder.add_node("summary", summary_node)
 
@@ -29,11 +28,11 @@ def build_answer_graph():
     builder.add_edge("planner", "executor")
 
     builder.add_conditional_edges("executor", lambda state:
-        "reflect_on_results" if (state.plan_successful or state.exceed_max_retries) else ("executor" if state.step_successful else "planner_retry")
+        "reflect_on_results" if (state.plan_successful or state.exceed_max_retries) else ("executor" if state.step_successful else "planner")
     )
 
 
-    builder.add_edge("planner_retry", "executor")
+    builder.add_edge("planner", "executor")
 
     builder.add_conditional_edges("reflect_on_results", lambda state:
         "plan_retry" if state.replan else "summary"

@@ -37,6 +37,6 @@ def execute_python_code(code: str, dataframes: dict, expected_outputs,variable_e
 
     for key in expected_outputs:
         if key not in updated_dataframes:
-            variable_env[key] = exec_env.get(key)
+            variable_env[key] = exec_env.get(key, None)
     
     return stdout.getvalue().strip(), error, chart_path, chart_title, updated_dataframes,variable_env

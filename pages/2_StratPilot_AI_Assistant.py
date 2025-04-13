@@ -87,7 +87,6 @@ if new_datasets:
         st.session_state.strategic_suggestions = result['suggested_questions']
         st.session_state.schema_context = result['schema_context']
         st.session_state.explored_datasets = result['explored_datasets']
-        st.session_state.memory_log = result['memory_log']
         have_new_datasets = False
 
 if not have_new_datasets and "schema_context" in st.session_state:
