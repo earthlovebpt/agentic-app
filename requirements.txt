@@ -1,9 +1,8 @@
-streamlit
-pandas
-matplotlib
-streamlit-extras
+langgraph
+langchain
 openai
-streamlit-chat
 python-dotenv
-streamlit-extras
-tabulate
+matplotlib
+streamlit
+langchain-community
+langchain-openai

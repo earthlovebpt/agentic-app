@@ -1,6 +1,15 @@
-def main():
-    print("Hello from agentic-app!")
+import streamlit as st
+from logger_config import setup_logger
+logger = setup_logger()
+logger.info("StratPilot started.")
 
+st.set_page_config(page_title="Welcome to StratPilot", layout="wide")
+st.title("👋 Welcome to StratPilot")
 
-if __name__ == "__main__":
-    main()
+st.markdown("""
+StratPilot is your agentic AI business consultant.
+
+**To get started:**
+1. Go to **Business and Data Setup** to describe your business and upload your data.
+2. Once submitted, you'll be redirected to the **AI Assistant** page where you can ask questions and receive strategic advice.
+""")
