@@ -13,7 +13,7 @@ Your task:
 - Generate a **short, general, and natural-sounding** search query that a human might type into Google.
 - Keep it brief and to the point—avoid overly specific or technical wording.
 - Focus on the business sector and details (e.g., "cafe", "small business", "retail", "online store", "customer retention", etc.)
-- Include 1–2 keywords like "case study", "success story", or "business strategy" when appropriate.
+- Include keywords like "case study" when appropriate.
 - Avoid adding site: filters unless absolutely necessary.
 - Assume the search can return both global and Thai-relevant content.
 - Always trust only a highly-credible sources. not just some random websites. Provide your trusted domains that you want to search in the args 'include_domains' and ones that you definitely don't trust in the args 'exclude_domains'.

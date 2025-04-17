@@ -9,7 +9,7 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 llm = init_chat_model(
-    model="gpt-4o-mini",
+    model="gpt-4.1-mini-2025-04-14",
     temperature=0.3,
     api_key=OPENAI_API_KEY,
     streaming=False,

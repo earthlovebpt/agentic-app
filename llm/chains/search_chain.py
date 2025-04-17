@@ -5,7 +5,7 @@ from utils.scraper import postprocess_tavily
 
 # Initialize Tavily Search Tool
 tavily_search_tool = TavilySearch(
-    max_results=5,
+    max_results=10,
     topic="general",
 )
 

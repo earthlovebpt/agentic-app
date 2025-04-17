@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import traceback
 
-def execute_python_code(code: str, dataframes: dict):
+def execute_python_code(code: str, dataframes: dict, additional_keys: list = []):
     # Create the execution environment and copy the original keys
     exec_env = {**dataframes, "pd": pd, "plt": plt}
     stdout = io.StringIO()
@@ -31,8 +31,14 @@ def execute_python_code(code: str, dataframes: dict):
     
     # Capture updated dataframes from the execution environment.
     # We assume that the keys in the original 'dataframes' dict remain the same.
-    updated_dataframes = {}
+    env_variables = {}
     for key in dataframes.keys():
-        updated_dataframes[key] = exec_env.get(key, dataframes[key])
-    
-    return stdout.getvalue().strip(), error, chart_path, chart_title, updated_dataframes
+        env_variables[key] = exec_env.get(key, dataframes[key])
+
+    for key in additional_keys:
+        tmp = exec_env.get(key)
+        if tmp is None:
+            continue
+        env_variables[key] = tmp
+
+    return stdout.getvalue().strip(), error, chart_path, chart_title, env_variables
