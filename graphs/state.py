@@ -56,3 +56,5 @@ class AgentState(BaseModel):
 
     exec_env: Optional[Dict[str, Any]] = None
     update_dataframes: Optional[Dict[str, Any]] = None
+
+    variable_env: Optional[Dict[str, Any]] = None

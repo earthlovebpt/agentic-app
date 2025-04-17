@@ -18,13 +18,9 @@ def reflect_on_results_node(state: AgentState) -> AgentState:
 
     logger.info("📥 [Reflect Output]\n%s", reflection)
 
-    # Increment retry count if a replan is needed
-    current_retry = state.retry_count or 0
-    max_allowed = state.max_retries or 2
-    new_retry_count = current_retry + 1
 
-    if reflection.replan and new_retry_count > max_allowed:
-        logger.warning(f"🚫 Max retry limit reached ({max_allowed}). Not replanning again.")
+    if reflection.replan and state.exceed_max_retries:
+        logger.warning(f"🚫 Max retry limit reached ({state.max_retries}). Not replanning again.")
         # Stop replanning
         replan = False
     else:
@@ -35,5 +31,5 @@ def reflect_on_results_node(state: AgentState) -> AgentState:
         "new_prompt": reflection.new_prompt,
         "data_sufficient": reflection.data_sufficient,
         "prior_summary": reflection.prior_summary,
-        "retry_count": new_retry_count if replan else current_retry
+        "recommendations_if_insufficient": reflection.recommendations_if_insufficient
     })

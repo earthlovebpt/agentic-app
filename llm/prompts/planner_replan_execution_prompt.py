@@ -44,7 +44,8 @@ Variables available now:
 Instructions:
 - Replace the failed step and the remaining steps if needed.
 - You can pivot strategy if that helps.
-- You may return an empty list if the question is unanswerable with current data.
+- You can end early if it is not possible to proceed with the current data by removing the remaining steps.
+- The plan must still include the executed steps before the failed step.
 
 Respond with a list of new steps (in valid JSON) or an empty list with reason:
 {format_instructions}
