@@ -1,12 +1,28 @@
 import logging
 from graphs.state import AgentState
-from llm.chains.planner_chain import planner_chain
-from llm.chains.planner_replan_execution_chain import planner_replan_execution_chain
-from llm.chains.planner_replan_insufficient_chain import planner_replan_insufficient_chain
+from llm.chains.suggestor.planner_chain import planner_chain
+from llm.chains.suggestor.planner_replan_execution_chain import planner_replan_execution_chain
+from llm.chains.suggestor.planner_replan_insufficient_chain import planner_replan_insufficient_chain
 
 logger = logging.getLogger("stratpilot")
 
 def planner(state: AgentState) -> AgentState:
+    """
+    Planner node: generates a multi-step plan to answer a question based on the
+    user's prompt, prior summary, memory log, and business context.
+
+    Planner chooses one of three replan strategies based on the current state:
+
+    1. If data is insufficient to answer the question, use the insufficient-data
+       replan chain.
+    2. If a previous step failed to execute, use the execution replan chain.
+    3. Otherwise, use the regular planner chain.
+
+    Planner node returns an updated state with a revised plan.
+
+    :param state: the current state
+    :return: the updated state
+    """
     user_prompt = state.user_prompt or ""
     prior_summary = state.prior_summary or ""
     memory_log = "\n".join(state.memory_log or [])
@@ -15,8 +31,7 @@ def planner(state: AgentState) -> AgentState:
     if (not state.data_sufficient) or state.replan_step:
         logger.info("📉 Reason: Data insufficient to answer. Using insufficient-data replan chain.")
         inputs = {
-            "business_type": state.business_profile.get("type", ""),
-            "business_details": state.business_profile.get("details", ""),
+            "business_detail": state.business_profile,
             "schema_context": state.schema_context,
             "user_prompt": user_prompt,
             "prior_summary": prior_summary,
@@ -27,14 +42,13 @@ def planner(state: AgentState) -> AgentState:
     elif state.retry_step:
         logger.info("📛 Reason: Previous step failed to execute. Using execution replan chain.")
         inputs = {
+            "business_detail": state.business_profile,
             "schema_context": state.schema_context,
             "full_plan": state.plan or [],
-            "current_step_index": len(state.results or [])-1,
-            "failed_step_description": state.plan[len(state.results or [])-1].description,
-            "required_variables": state.plan[len(state.results or [])-1].required_variables,
-            "error_message": state.step_blocker,
+            "error_step_id": len(state.results or [])-1,
+            "error_msg": state.step_blocker,
+            "variable_env": ", ".join(list(state.variable_env.keys())),
             "user_prompt": user_prompt,
-            "prior_summary": prior_summary,
             "memory_log": memory_log,
         }
         chain = planner_replan_execution_chain
@@ -42,8 +56,7 @@ def planner(state: AgentState) -> AgentState:
     else:
         logger.info("🧠 [Planner] Planning...")
         inputs = {
-            "business_type": state.business_profile.get("type", ""),
-            "business_details": state.business_profile.get("details", ""),
+            "business_detail": state.business_profile,
             "schema_context": state.schema_context,
             "user_prompt": user_prompt,
             "prior_summary": prior_summary,

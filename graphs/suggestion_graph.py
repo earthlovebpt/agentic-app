@@ -8,14 +8,19 @@ from nodes.executor import executor_node
 from nodes.reflect import reflect_on_results_node
 from nodes.summary import summary_node
 
-def build_answer_graph():
+#Question Generator -> Gen from user prompt + business profile + schema + generator, Set the og question, gen_question
+#Selector  -> Select the user prompt based on length of insights
+#Then -> Do planner -> executor loop -> until it reaches summary
+#Summary -> extract insights -> append insight -> if len(insights) != num_question -> Loop back to selector -> Else -> Go to advisor
+#Advisor would take business_profile, schema_context, insights, generated question, og_question -> Action (title, description, detailed plan, advantage, disadvantage, next question to ask)
+
+def build_suggestor_graph():
     builder = StateGraph(state_schema=AgentState)
 
     # ✅ Add all nodes
     builder.add_node("validate_data", validate_data_node)
     builder.add_node("planner", planner)
     builder.add_node("executor", executor_node)
-    builder.add_node("planner_retry", planner)
     builder.add_node("reflect_on_results", reflect_on_results_node)
     builder.add_node("summary", summary_node)
 
@@ -29,14 +34,11 @@ def build_answer_graph():
     builder.add_edge("planner", "executor")
 
     builder.add_conditional_edges("executor", lambda state:
-        "reflect_on_results" if (state.plan_successful or state.exceed_max_retries) else ("executor" if state.step_successful else "planner_retry")
+        "reflect_on_results" if (state.plan_successful or state.exceed_max_retries) else ("executor" if state.step_successful else "planner")
     )
 
-
-    builder.add_edge("planner_retry", "executor")
-
     builder.add_conditional_edges("reflect_on_results", lambda state:
-        "plan_retry" if state.replan else "summary"
+        "planner" if state.replan else "summary"
     )
     
     builder.add_edge("summary", END)

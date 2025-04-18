@@ -1,5 +1,5 @@
 from graphs.state import AgentState
-from llm.chains.reflect_chain import reflect_chain
+from llm.chains.suggestor.reflect_chain import reflect_chain
 import logging
 
 logger = logging.getLogger("stratpilot")

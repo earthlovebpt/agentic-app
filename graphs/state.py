@@ -4,6 +4,8 @@ from pydantic import BaseModel, Field
 class AgentState(BaseModel):
     # 🧠 User intent
     user_prompt: Optional[str] = None
+    og_prompt: Optional[str] = None
+    generated_prompt: Optional[List[Dict[str, Any]]] = None
 
     data_sufficient: Optional[bool] = None
     user_action: Optional[str] = None  # "upload_more_data" or "ask_other_question"
@@ -54,7 +56,11 @@ class AgentState(BaseModel):
     max_retries: int = 4
     exceed_max_retries: bool = False
 
-    exec_env: Optional[Dict[str, Any]] = None
-    update_dataframes: Optional[Dict[str, Any]] = None
-
     variable_env: Optional[Dict[str, Any]] = None
+
+    #For storing insights and actions
+    insights: Optional[List[List[str]]] = []
+    complete_gen_question: Optional[bool] = False
+    actions: Optional[List[Dict[str, Any]]] = None
+    selected_action: Optional[Dict[str, Any]] = None
+

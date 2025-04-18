@@ -12,4 +12,5 @@ class PlanStep(BaseModel):
     outputs: List[str]
 
 class PlanOutput(BaseModel):
+    reasoning: str
     steps: List[PlanStep]

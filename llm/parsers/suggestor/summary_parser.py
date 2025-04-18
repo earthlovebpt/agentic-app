@@ -2,5 +2,6 @@ from pydantic import BaseModel
 from typing import List
 
 class StrategicSummary(BaseModel):
+    thought: str
     answer_to_question: str
-    insight_summary: List[str]
+    insights: str

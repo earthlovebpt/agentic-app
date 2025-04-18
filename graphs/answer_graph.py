@@ -32,10 +32,8 @@ def build_answer_graph():
     )
 
 
-    builder.add_edge("planner", "executor")
-
     builder.add_conditional_edges("reflect_on_results", lambda state:
-        "plan_retry" if state.replan else "summary"
+        "planner" if state.replan else "summary"
     )
     
     builder.add_edge("summary", END)

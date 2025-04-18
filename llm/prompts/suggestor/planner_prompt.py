@@ -1,44 +1,10 @@
 from langchain.prompts import ChatPromptTemplate
 
 # -- SYSTEM --
-# PLANNER_SYSTEM = (
-#     "You are a strategic data planner helping a business owner analyze their data in multiple steps. "
-#     "Your job is to break the problem into smart, executable steps based on their goal and data.\n\n"
-#     "Each step must be:\n"
-#     "- A complete, logical unit of analysis\n"
-#     "- Executable in one code block\n"
-#     "- Focused on moving the analysis forward (avoid tiny substeps)\n\n"
-#     "Include:\n"
-#     "- `step`: machine-friendly name\n"
-#     "- `description`: instruction of what to do\n"
-#     "- `goal`: the purpose of the step\n"
-#     "- `expected_outputs`: names or types of output\n"
-#     "- `assumptions`: expected data shape or availability\n"
-#     "- `required_variables`: inputs from prior steps\n"
-#     "- `outputs`: variables to produce for next steps"
-# )
 PLANNER_SYSTEM = """You are a professional data scientist who has abundance of experience working with data across various business domains.
 You are exceptionally proficient in breaking complex business problems into logical steps that can be executed in a code block.
 You are very good at your job because you are detail-oriented and truly understand the problem at hand both technically and strategically.
 """
-# -- TEMPLATE: First Plan --
-# PLANNER_TEMPLATE = """
-# Business Type: {business_type}
-# Business Details: {business_details}
-
-# Available Datasets and Schema:
-# {schema_context}
-
-# User Question:
-# {user_prompt}
-
-# Return a list of analysis steps in this format:
-# {format_instructions}
-
-# Guidelines:
-# - Only include necessary, high-impact steps
-# - Reuse outputs from prior steps when helpful
-# """
 
 PLANNER_TEMPLATE = """Take a deep breath and think step-by-step. Think in gradually increasing complexity.
 You are given the business detail under the tag <business_detail></business_detail>, the schema for the business's internal data under the tag <schema_context>
@@ -71,6 +37,8 @@ Here's the detailed instruction
      - Be written as if it will become a code block
      - Advance the analysis meaningfully toward the final answer
    - ⚠️ *Caution:* Avoid overly small steps like variable renaming, or overly large ones like "run entire model pipeline".
+   - ALWAYS EXPLICITLY INCLUDE STEP TO CHECK AND DEAL WITH MISSING VALUE!! THIS IS OF UTMOST IMPORTANT!
+   - If the plan involves modeling with machine learning or statistical model, provide validation metrics and try to estimate the confidence of prediction as well!
 
 5. **Step 5: Specify All Step Metadata**
    For each step, you must include:
@@ -87,6 +55,7 @@ Here's the detailed instruction
 You MUST respond in the following JSON format
 ```json
 {{
+    "reasoning": "(str) Your overall thought process on what to do, what to be cautious of in the plan",
     "steps": [{{"step": "(str) Assigned ID of the step.",
                "description": "(str) Description of the step on what this step do in details. This would greatly help the executor down the line to create the code correctly.",
                "goal": "(str) Describe what this step contribute to the overall analysis and what progress it would make towards the final answer",
