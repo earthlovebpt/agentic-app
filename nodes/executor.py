@@ -42,27 +42,42 @@ def preprocess_input(state, current_step):
         "expected_outputs": ", ".join(current_step.expected_outputs),
         "schema_context": state.schema_context,
         "dataset_list": "\n".join([f"{sanitize(name)}_df" for name in state.datasets]),
-        "error_message": "" if state.retry_step else state.step_blocker
+        "error_message": "" if state.retry_step else state.step_blocker,
+        "error_history": []
     }
     
 def log_data(**data_to_log):
     for key, value in data_to_log.items(): 
         logger.info(f"📤 [Executor-{key}]\n%s", value)
         
-def generate_and_execute_code(state, inputs):
-    # 1. Generaete code.
-    code = executor_chain.invoke(inputs).content
-    
-    # 2. Execute code.
-    available_dfs = {f"{sanitize(name)}_df": df['data'].copy() for name, df in state.datasets.items()} if not state.update_dataframes else state.update_dataframes
-    expected_outputs = state.plan[state.current_step_index].expected_outputs
-    variable_env = state.variable_env or {}
-    output, error, chart_path, chart_title, updated_dataframes, updated_variable_env  = execute_python_code(
-        strip_code_block(code), 
-        available_dfs, 
-        expected_outputs, 
-        variable_env
-    )
+def generate_and_execute_code(state, inputs, max_retries=5):
+    retry_count = 0
+    while retry_count < max_retries:
+        logger.info(f"Attempt {retry_count + 1}/{max_retries}...")
+        # 1. Generaete code.
+        code = executor_chain.invoke(inputs).content
+        
+        # 2. Execute code.
+        available_dfs = {f"{sanitize(name)}_df": df['data'].copy() for name, df in state.datasets.items()} if not state.update_dataframes else state.update_dataframes
+        expected_outputs = state.plan[state.current_step_index].expected_outputs
+        variable_env = state.variable_env or {}
+        output, error, chart_path, chart_title, updated_dataframes, updated_variable_env  = execute_python_code(
+            strip_code_block(code), 
+            available_dfs, 
+            expected_outputs, 
+            variable_env
+        )
+        
+        # Break the loop, if execute succesfully.
+        if error is None:
+            break
+        
+        retry_count += 1
+        # Append error for the next attempt.
+        inputs["error_history"].extend([
+            ("ai", code),
+            ("user", error) 
+        ])
     return output, error, chart_path, chart_title, updated_dataframes, updated_variable_env, code
 
 def get_memory_log(state, current_step, output, error):

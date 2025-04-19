@@ -1,4 +1,4 @@
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 EXECUTOR_SYSTEM = (
     "You are a Python data analyst. Use the provided dataframes to perform the task below.\n"
@@ -37,5 +37,6 @@ Respond with valid Python code only.
 
 executor_prompt = ChatPromptTemplate.from_messages([
     ("system", EXECUTOR_SYSTEM),
-    ("user", EXECUTOR_TEMPLATE)
+    ("user", EXECUTOR_TEMPLATE),
+    MessagesPlaceholder("error_history")
 ])
