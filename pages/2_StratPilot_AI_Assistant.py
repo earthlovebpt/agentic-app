@@ -17,6 +17,53 @@ def sanitize(name):
         name = f"df_{name}"
     return name
 
+def normalize_text(text):
+    normalized_text = text.replace("$","\$")
+    return normalized_text
+
+def display_answer_section(final_state):
+    st.subheader("📌 Answer to Your Question")
+    st.markdown(normalize_text(final_state['answer_to_question']) or "No direct answer was generated.")
+    
+def display_key_insights_section(final_state):
+    st.subheader("🔍 Key Insights")
+    st.markdown(normalize_text(final_state['insight_summary']) or "No insights were generated.")
+        
+def display_recommendations_section(final_state):
+    st.subheader("✅ Recommended Actions")
+    if final_state['recommended_actions']:
+        for action in final_state['recommended_actions']:
+            st.markdown(f"- {normalize_text(action)}")
+    else:
+        st.markdown("No specific recommendations provided.")
+        
+def display_analysis_section(final_state):
+    # Only show charts that are referenced in the final summary texts
+    combined_summary = (final_state['answer_to_question'] or "") + " " + (final_state['insight_summary'] or "")
+    
+    st.subheader("📊 Analysis Visualization")
+    chart_found = False
+    for i, res in enumerate(final_state['results']):
+        # Expect that executor_node sets a chart_id in each result (e.g. "chart_1", "chart_2", etc.)
+        chart_id = res.get("chart_id")
+        # Only show the chart if the chart_id is mentioned in the final summary text
+        if chart_id and chart_id in combined_summary:
+            st.markdown(f'{res.get("chart_id")}: {res.get("chart_title")}')
+            st.image(res.get("chart"), use_container_width=True, caption=f"Chart from Step {i+1} ({chart_id})")
+            chart_found = True
+    if not chart_found:
+        st.info("No charts were referenced in the final summary.")
+        
+def display_results(final_state):
+    with st.container(border=True):
+        display_answer_section(final_state)
+    with st.container(border=True):
+        display_key_insights_section(final_state)
+    with st.container(border=True):
+        display_recommendations_section(final_state)
+    with st.container(border=True):
+        display_analysis_section(final_state)
+
 st.set_page_config(page_title="StratPilot - AI Assistant", layout="wide")
 st.title("StratPilot – Your AI Business Consultant")
 
@@ -134,32 +181,4 @@ if st.button("Analyze"):
         for rec in final_state['recommendations_if_insufficient']:
             st.markdown(f"- {rec}")
     
-    # Display final outputs from the answer graph
-    st.subheader("📌 Answer to Your Question")
-    st.markdown(final_state['answer_to_question'] or "No direct answer was generated.")
-
-    st.subheader("🔍 Key Insights")
-    st.markdown(final_state['insight_summary'] or "No insights were generated.")
-
-    st.subheader("✅ Recommended Actions")
-    if final_state['recommended_actions']:
-        for action in final_state['recommended_actions']:
-            st.markdown(f"- {action}")
-    else:
-        st.markdown("No specific recommendations provided.")
-
-    # Only show charts that are referenced in the final summary texts
-    combined_summary = (final_state['answer_to_question'] or "") + " " + (final_state['insight_summary'] or "")
-    
-    st.subheader("📊 Analysis Visualization")
-    chart_found = False
-    for i, res in enumerate(final_state['results']):
-        # Expect that executor_node sets a chart_id in each result (e.g. "chart_1", "chart_2", etc.)
-        chart_id = res.get("chart_id")
-        # Only show the chart if the chart_id is mentioned in the final summary text
-        if chart_id and chart_id in combined_summary:
-            st.markdown(f'{res.get("chart_id")}: {res.get("chart_title")}')
-            st.image(res.get("chart"), use_column_width=True, caption=f"Chart from Step {i+1} ({chart_id})")
-            chart_found = True
-    if not chart_found:
-        st.info("No charts were referenced in the final summary.")
+    display_results(final_state)
