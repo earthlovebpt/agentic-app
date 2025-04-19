@@ -8,6 +8,9 @@ logger = logging.getLogger("stratpilot")
 
 def executor_node(state):
     # Preprocess inputs.
+    if state.current_step_index >= len(state.plan):
+        raise IndexError(f"Invalid step index {state.current_step_index}. Plan length is {len(state.plan)}.")
+        
     current_step = state.plan[state.current_step_index]
     inputs = preprocess_input(state, current_step)
     
