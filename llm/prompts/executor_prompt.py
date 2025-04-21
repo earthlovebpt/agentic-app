@@ -2,10 +2,8 @@ from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 EXECUTOR_SYSTEM = (
     "You are a Python data analyst. Use the provided dataframes to perform the task below.\n"
-    "The dataframe is already loaded in memory. Use the provided variable name exactly as given and only work with the column names in the provided schema context.\n"
+    "All DataFrames and variables listed in the user message are already in scope.\n"
     "Do not recreate or reassign the dataframe; only use it as-is.\n"
-    "The available pandas DataFrames are:\n"
-    "{dataset_list}\n\n"
     "For each step in your analysis, you must use print() to describe what is being printed before printing the actual value.\n"
     "For example:\n"
     "print('Top 5 products by sales:')\n"
@@ -17,19 +15,19 @@ EXECUTOR_SYSTEM = (
 )
 
 EXECUTOR_TEMPLATE = """
+Datasets (already loaded):
+{dataset_list}
+Variables in scope (already loaded):
+{required_variables}
 Step ID: {step}
 Description: {description}
 Goal: {goal}
 Expected Outputs: {expected_outputs}
 Assumptions: {assumptions}
-Required Variables: {required_variables}
 
 Schema Context:
 {schema_context}
 
-Error Message from Previous Run (if any): {error_message}
-
-If an error message is provided (i.e. it is not empty), generate new code that addresses and fixes this error.
 If a chart visualization would help answer the question or clarify insights, include code using matplotlib to generate and display (or save) the chart, and set an appropriate title for the chart.
 
 Respond with valid Python code only.

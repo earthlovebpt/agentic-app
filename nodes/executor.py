@@ -3,6 +3,7 @@ from llm.chains.executor_chain import executor_chain
 from utils.safe_exec import execute_python_code
 import logging
 from utils.sanitize import sanitize, strip_code_block
+import pandas as pd
 
 logger = logging.getLogger("stratpilot")
 
@@ -15,7 +16,7 @@ def executor_node(state):
     inputs = preprocess_input(state, current_step)
     
     # Run code.
-    output, error, chart_path, chart_title, updated_dataframes, updated_variable_env, code = generate_and_execute_code(state, inputs)
+    output, error, chart_path, chart_title, updated_dataframes, updated_variable_env, code = generate_and_execute_code(state, inputs, max_retries=2)
     log_data(code=code, output=output, error=error, chart_path=chart_path)
     
     # Get other outputs.
@@ -41,11 +42,12 @@ def preprocess_input(state, current_step):
         "description": current_step.description,
         "goal": current_step.goal or "",
         "assumptions": "\n".join(current_step.assumptions),
-        "required_variables": ", ".join(current_step.required_variables),
+        "required_variables": get_variables_context(
+            current_step.required_variables, 
+            state.variable_env or {}),
         "expected_outputs": ", ".join(current_step.expected_outputs),
         "schema_context": state.schema_context,
         "dataset_list": "\n".join([f"{sanitize(name)}_df" for name in state.datasets]),
-        "error_message": "" if state.retry_step else state.step_blocker,
         "error_history": []
     }
     
@@ -53,7 +55,7 @@ def log_data(**data_to_log):
     for key, value in data_to_log.items(): 
         logger.info(f"📤 [Executor-{key}]\n%s", value)
         
-def generate_and_execute_code(state, inputs, max_retries=5):
+def generate_and_execute_code(state, inputs, max_retries):
     retry_count = 0
     while retry_count < max_retries:
         logger.info(f"Attempt {retry_count + 1}/{max_retries}...")
@@ -96,4 +98,27 @@ def get_result(state, current_step, output, chart_path, chart_title):
         "chart_title": chart_title,
         "step_description": current_step.description
     }
+
+def get_variables_context(variables, variable_env):
+    """
+    Get a string context for the specified required variables.
+
+    Args:
+        variables (List[str]): Names of the variables to include in context.
+        variable_env (Dict[str, Any]): Mapping from variable names to their values.
+
+    Returns:
+        str: A string representing each variable assignment or DataFrame head.
+    """
+    context = []
+    for v in variables:
+        # TODO: The variables may present in data_list, but not in variable_env.
+        if v not in variable_env:
+            continue
+        if isinstance(variable_env[v], pd.DataFrame):
+            context.append(f"**{v}** = {variable_env[v].head()}")
+        else:
+            context.append(f"**{v}** = {repr(variable_env[v])}")
+        
+    return "\n\n".join(context)
     
