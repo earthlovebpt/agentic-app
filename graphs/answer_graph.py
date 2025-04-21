@@ -2,7 +2,6 @@ from langgraph.graph import StateGraph, END
 from graphs.state import AgentState
 
 # 🧩 Import node functions (to be implemented or connected)
-from nodes.validate_data import validate_data_node
 from nodes.planner import planner
 from nodes.executor import executor_node
 from nodes.reflect import reflect_on_results_node
@@ -12,18 +11,13 @@ def build_answer_graph():
     builder = StateGraph(state_schema=AgentState)
 
     # ✅ Add all nodes
-    builder.add_node("validate_data", validate_data_node)
     builder.add_node("planner", planner)
     builder.add_node("executor", executor_node)
     builder.add_node("reflect_on_results", reflect_on_results_node)
     builder.add_node("summary", summary_node)
 
     # ✅ Set entry point
-    builder.set_entry_point("validate_data")
-
-    builder.add_conditional_edges("validate_data", lambda state:
-        "planner" if state.data_sufficient else END
-    )
+    builder.set_entry_point("planner")
 
     builder.add_edge("planner", "executor")
 

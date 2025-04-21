@@ -5,7 +5,6 @@ class AgentState(BaseModel):
     # 🧠 User intent
     user_prompt: Optional[str] = None
 
-    data_sufficient: Optional[bool] = None
     user_action: Optional[str] = None  # "upload_more_data" or "ask_other_question"
     recommendations_if_insufficient: Optional[List[str]] = None
 
