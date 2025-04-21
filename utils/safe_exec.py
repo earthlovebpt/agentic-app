@@ -4,9 +4,19 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import traceback
 
-def execute_python_code(code: str, dataframes: dict, expected_outputs,variable_env: dict):
-    # Create the execution environment and copy the original keys
-    exec_env = {**dataframes, "pd": pd, "plt": plt}
+def execute_python_code(
+    code: str, 
+    dataframes: dict, 
+    expected_outputs: list,
+    variable_env: dict
+):
+    # Create the execution environment, include existing variables, and copy the original keys
+    exec_env = {
+        **dataframes,
+        **variable_env,
+        "pd": pd,
+        "plt": plt,
+    }
     stdout = io.StringIO()
     error = None
     chart_path = None
