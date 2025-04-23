@@ -13,7 +13,7 @@ You are given:
 - THe business's internal data schema under the tag <schema_context>. This is a summary of the data schema and its contents.
 
 Your task is to generate a thoughtful and strategic list of **data-oriented questions** that must be answered to help assess the feasibility, risk, and optimization of the business goal. These questions should help guide an analysis, spark relevant insights, and support better decision-making.
-Furthermore, it should be **grounded** in and **answerable** with the business's internal data and the schema.
+Furthermore, it should be **grounded** in and **answerable** with the business's internal data and the schema. YOU CAN CREATE ONLY UP TO 5 QUESTIONS!!
 
 ---
 
@@ -59,7 +59,7 @@ Furthermore, it should be **grounded** in and **answerable** with the business's
       "related_fields": ["(str)", "(str)", "..."],
       "goal_alignment": "(str) How this question helps with the business goal",
       "suggested_method": "(List[str]) e.g. clustering, forecasting, regression, data manipulation, market basket analysis. Keep it simple. DO NOT GO INTO DETAILS ON HOW IT SHOULD BE DONE!"
-    }}
+    }} ... (up to 5 questions)
   ]
 }}
 ```

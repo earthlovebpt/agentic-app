@@ -20,10 +20,11 @@ def summary_node(state: AgentState) -> AgentState:
     response = summary_chain.invoke(inputs)
     
     logger.info("📥 [Summary Node Output]\n%s", response)
-    tmp = state.insights + response.insights
+    tmp = state.insights + [response.insights]
+    logger.info("[Summary] Number of insights generated: %s", len(tmp))
     
     return state.model_copy(update={
-        "answer_to_question": response.answer_to_question,
-        "insight_summary": tmp,
+        "answers": state.answers + [response.answer_to_question],
+        "insights": tmp,
         "complete_gen_question": len(tmp) == len(state.gen_questions),
     })

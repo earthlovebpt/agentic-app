@@ -61,6 +61,7 @@ class AgentState(BaseModel):
 
     #For storing insights and actions
     insights: Optional[List[List[str]]] = []
+    answers: Optional[List[str]] = []
     complete_gen_question: Optional[bool] = False
     strategies: Optional[List[Dict[str, Any]]] = None
     selected_strategy: Optional[Dict[str, Any]] = None

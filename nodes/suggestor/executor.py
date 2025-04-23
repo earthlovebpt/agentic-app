@@ -64,6 +64,8 @@ def executor_node(state: AgentState) -> AgentState:
         "code": code,
         "error": error
     }
+
+    logger.info("[Executor] Current Index: {}, Plan Length: {}, Error: {}".format(current_index + 1, len(state.plan), error))
     
     # Return an updated state with the new result appended.
     # Also, flag 'plan_successful' if the last step has been reached.
