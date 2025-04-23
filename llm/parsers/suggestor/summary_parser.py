@@ -4,4 +4,4 @@ from typing import List
 class StrategicSummary(BaseModel):
     thought: str
     answer_to_question: str
-    insights: str
+    insights: List[str]

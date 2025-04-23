@@ -84,9 +84,11 @@ Your goal is to develop **multiple, actionable business improvement strategies**
 
 ```json
 {{
-  "actions": [
+  "strategies": [
     {{
-      "thought": "(str) Why this strategy helps — how it ties to insights and the business goal",
+      "thought": "(str) Why this strategy helps — how it ties to insights and the business goal. Explicitly identify insights id that support and validate this strategy",
+      "supported_insights": [
+        "(str) What insights are supported by this strategy?. Give it in terms of Insight id located in front of each insight that you deem supports and validates this strategy"]
       "title": "(str) Clear, short title summarizing the strategy",
       "description": "(str) A deeper explanation of what the strategy does and how it works)",
       "detailed_plans": [

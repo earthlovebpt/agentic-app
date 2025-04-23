@@ -148,6 +148,8 @@ Your goal is to repair or improve the current analysis pipeline after an error h
   - Assumptions
   - Libraries
   - Expected outputs
+- YOU MUST RETURN THE FULL PLAN FROM THE FIRST STEP. FOR EXAMPLE, IF A PLAN FAILS AT STEP 3 AND YOU ADJUSTED STEP 3 ONWARDS, YOU STILL HAVE TO RETURN THE PLAN FROM ORIGINAL STEP 1 to STEP 2 combined with YOUR ADJUSTED STEP 3 onwards.
+- THE PREVIOUS INSTRUCTION IS REALLY IMPORTANT AS IT HELPS THE SYSTEM TO INDEX THE PLAN CORRECTLY. IF YOU DO THIS WELL, I WILL TIP YOU ADDITIONAL 50 US DOLLARS.
 
 **Caution:**
 - Make sure every output from one step is usable in the next.
@@ -187,6 +189,7 @@ You MUST respond in the following JSON format:
 - ✅ Be explicit in your logic, avoid “magic thinking.”
 - ❌ Don’t invent new data, columns, or libraries unless justified and safe.
 - ❌ Don’t retry a broken step with the same assumptions or inputs.
+- I EMPHASIZE AGAIN, YOUR PLAN SHOULD START FROM STEP 1 EVEN IF YOU ADJUSTED ONLY LATER STEPS ONWARDS!!!
 
 If you do this task well, I will tip you 200 US Dollars.
 

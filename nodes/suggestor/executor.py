@@ -1,5 +1,5 @@
 from graphs.state import AgentState
-from llm.chains.executor_chain import executor_chain
+from llm.chains.suggestor.executor_chain import executor_chain
 from utils.safe_exec import execute_python_code
 import logging
 from utils.sanitize import sanitize, strip_code_block
@@ -11,7 +11,9 @@ logger = logging.getLogger("stratpilot")
 def executor_node(state: AgentState) -> AgentState:
     # Determine the current step index based on results accumulated
     current_index = state.current_step_index
-    variable_env = {sanitize(name): df['data'].copy() for name, df in state.datasets.items()} if ((not state.variable_env) or (i == 0)) else state.variable_env
+    logger.info("[Executor] Executing Step {}".format(current_index))
+    logger.info("[Executor] Plan: {}".format("\n".join([f"{step.step}: {step.description}" for step in state.plan])))
+    variable_env = {sanitize(name): df['data'].copy() for name, df in state.datasets.items()} if (state.variable_env == {}) else state.variable_env
     variables_list = [
         sanitize(name) for name in variable_env
     ]
@@ -26,7 +28,7 @@ def executor_node(state: AgentState) -> AgentState:
 
     variables_list = "\n".join(variables_list)
     # Prepare inputs for the executor chain using the step's details
-    inputs = {**step, 
+    inputs = {**step.model_dump(), 
             "schema_context": state.schema_context, 
             "variables_list": variables_list,
             "name_to_short": "\n".join([f"import {k} as {v}" for k, v in NAME_TO_SHORT.items()]),
@@ -46,7 +48,7 @@ def executor_node(state: AgentState) -> AgentState:
 
     # On success, update the memory log with output info
     memory_log = state.memory_log or []
-    memory_log.append(f"[Step {step['step']}] {step['description']}\n{output if not error else error}")
+    memory_log.append(f"[Step {step.step}] {step.description}\n{output if not error else error}")
 
 
     # Create a unique chart ID based on the current step index (starting from 1)
@@ -58,7 +60,7 @@ def executor_node(state: AgentState) -> AgentState:
         "chart": chart_path,
         "chart_id": chart_id,
         "chart_title": chart_title,
-        "step_description": step["description"],
+        "step_description": step.description,
         "code": code,
         "error": error
     }
@@ -74,5 +76,5 @@ def executor_node(state: AgentState) -> AgentState:
         "memory_log": memory_log,
         "current_step_index": current_index + 1 if not error else current_index,
         "plan_successful": (current_index + 1 == len(state.plan)) if not error else False,
-        "variable_env": {**state.variable_env, **updated_venv} if not error else state.variable_env
+        "variable_env": {**(state.variable_env or {}), **updated_venv} if not error else state.variable_env
     })

@@ -59,8 +59,6 @@ def planner(state: AgentState) -> AgentState:
             "business_detail": state.business_profile,
             "schema_context": state.schema_context,
             "user_prompt": user_prompt,
-            "prior_summary": prior_summary,
-            "memory_log": memory_log,
         }
         chain = planner_chain
 
