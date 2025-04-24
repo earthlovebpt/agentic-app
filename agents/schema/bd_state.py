@@ -5,6 +5,6 @@ from operator import add
 
 
 class BDState(TypedDict):
-    messages: Annotated[list[AnyMessage], add_messages]
-    data_insights: Annotated[list, add]
-    search_insights: Annotated[list, add]
+    messages: Annotated[list[AnyMessage], add_messages] = []
+    data_insights: Annotated[list, add] = []
+    search_insights: Annotated[list, add] = []

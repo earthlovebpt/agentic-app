@@ -56,4 +56,9 @@ def search_summary(queries: List[str], show_progress: bool = False) -> List[Dict
             "summaries": search_summary_single(query)
         })
 
-    return summaries
+    messages = ""
+    for summary in summaries:
+        messages += f"Question: {summary['question']}\n"
+        messages += f"Summaries: {"\n   - ".join(summary['summaries'])}\n"
+
+    return {"messages": messages, "search_insights": summaries}
