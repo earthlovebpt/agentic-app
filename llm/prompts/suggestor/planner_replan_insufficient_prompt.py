@@ -84,7 +84,7 @@ Your response MUST be in the following JSON format:
                "goal": "(str) Describe what this step contribute to the overall analysis and what progress it would make towards the final answer",
                "expected_outputs": "(List[str]) Concretely list out what output you want from this step",
                "assumptions": "(List[str]) List of assumptions such as the shape or the format or the distribution and statistics for certain variables or columns to make this step work",
-               "required_variables": "(List[str]) List of variables' name such as dataframe, model, parameters required to do this step successfully",
+               "required_variables": "(List[str]) List of variables' name such as dataframe, model, parameters required to do this step successfully. MUST ALL BE LOWER-CASED",
                "required_libs": "(List[str]) What library or packages are necessary to perform this task."
                "outputs": "(List[str]) The output variables you will return in this step"
                }}

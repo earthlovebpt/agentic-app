@@ -47,7 +47,7 @@ Here's the detailed instruction
    - `"goal"`: Why this step is important — how it contributes to the final question.
    - `"expected_outputs"`: A concrete description of what result this step should return (e.g., a dataframe, model object, or aggregated metric).
    - `"assumptions"`: Important assumptions about data format, column presence, types, or distributions.
-   - `"required_variables"`: What variables are required to execute the step (e.g., dataframe names, parameters, models).
+   - `"required_variables"`: What variables are required to execute the step (e.g., dataframe names, parameters, models). MUST ALL BE LOWER-CASED
    - `"required_libs"`: What library or packages are necessary to perform this task.
    - `"outputs"`: What variables will be produced by this step and passed to the next step(s).
 

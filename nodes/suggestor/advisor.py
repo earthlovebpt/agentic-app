@@ -28,5 +28,5 @@ def advisor_node(state: AgentState) -> AgentState:
     logger.info("📥 [Advisor Node Output]\n%s", response)
     
     return state.model_copy(update={
-        "strategies": response.strategies.model_dump()
+        "strategies": [s.model_dump() for s in response.strategies]
     })

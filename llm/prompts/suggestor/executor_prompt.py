@@ -54,6 +54,7 @@ Here's the detailed instruction:
    - Every important module is imported already. If you want to use somethinkg, use it from the loaded module instead
    - For example, if you want to use KMeans from sklearn, instead of doing "from sklearn.cluster import KMeans", do "KMeans = sklearn.cluster.KMeans" instead since the sklearn module is imported already!
    - Assume that this code has been run before your code: {name_to_short}. DO NOT IMPORT ANYTHING ELSE FROM HERE!!!!!!!
+   - All your variables MUST be lower-cased!
 
 6. **Handle the data carefully**:
    - Make sure to follow assumptions (e.g., column names must exist, numeric columns should have no nulls if doing math).  

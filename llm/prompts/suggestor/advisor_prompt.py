@@ -73,6 +73,8 @@ Your goal is to develop **multiple, actionable business improvement strategies**
   - Specify which team (e.g., marketing, sales, data, operations) is responsible for each step
   - Set a realistic timeline for execution
   - Include both pros and cons
+  - BE REALLY SPECIFIC. SUCH AS EXPLAINING IN DETAILS WHAT PRODUCTS TO DO PROMOTION ON. WHAT LOYALTY PROGRAM THE BUSINESS SHOULD DO? THIS IS REALLY IMPORTANT AND WOULD ENHANCE YOUR QUALITY OF WORK!!
+  - USE THE INSIGHTS IN DETAIL. DO NOT LEAVE OUT PRODUCT NAME, NUMBER, SALES, TIME OF DAY, ETC.!!
 
 **Caution**:  
 - ❌ Avoid high-level fluff like “Improve customer service” without concrete steps.

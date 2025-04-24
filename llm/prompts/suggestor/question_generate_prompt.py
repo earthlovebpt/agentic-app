@@ -39,6 +39,7 @@ Furthermore, it should be **grounded** in and **answerable** with the business's
 - Structure your thinking from **general to specific**. Start broad, then narrow in:
   - General: “Which product categories sell best on Mondays?”
   - Specific: “Among loyalty customers aged 18–25, which discounted products are frequently purchased together on Mondays?”
+- BE REALLY SPECIFIC ABOUT YOUR QUESTIONS SUCH AS WHAT PRODUCTS HAVE HIGHEST SALES OR ARE MOST PAIRED WITH WHICH OTHER PRODUCTS?
 
 #### 4. Avoid Invalid or Subjective Questions
 - ❌ Avoid speculative or opinion-based questions like:

@@ -60,6 +60,7 @@ You must follow these steps:
 - From all the above, list several **concrete insights**:
   - These could answer the user’s question
   - Or provide high-impact business understanding (e.g., most profitable segment, weekly sales seasonality, product bundle patterns)
+  - BE REALLY SPECIFIC ON INSIGHTS! DO NOT LEAVE OUT ANY NUMBER, PRODUCT_ID, PRICE, ETC. AS THIS WOULD HELP GENERATING ADVICE FOR BUSINESS LATER ON!
 - Then, based on the insights, provide your **final answer** that directly addresses the user’s question in a clear, data-grounded manner.
 
 ---

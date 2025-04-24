@@ -76,8 +76,13 @@ def planner(state: AgentState) -> AgentState:
         if hasattr(step, "outputs"):
             logger.debug(f"    Produces: {step.outputs}")
 
-    return state.model_copy(update={
+    updates = {
         "plan": steps,
         "step_blocker": None,
         "exceed_max_retries": state.retry_count >= state.max_retries
-    })
+    }
+
+    if chain == planner_replan_insufficient_chain:
+        updates["current_step_index"] = 0
+
+    return state.model_copy(update=updates)

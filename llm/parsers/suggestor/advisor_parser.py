@@ -3,6 +3,7 @@ from typing import List, Optional, Dict
 
 class Strategy(BaseModel):
     thought: str
+    supported_insights: List[str]
     title: str
     description: str
     detailed_plans: List[str]

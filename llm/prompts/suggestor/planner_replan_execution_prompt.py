@@ -172,7 +172,7 @@ You MUST respond in the following JSON format:
       "goal": "(str) Describe what this step contributes to the overall analysis and what progress it would make toward the final answer.",
       "expected_outputs": ["(List[str]) Clearly state what output you expect from this step."],
       "assumptions": ["(List[str]) List assumptions such as required data shape, presence of certain fields, non-null conditions, distribution, etc."],
-      "required_variables": ["(List[str]) List variables like dataframes, models, config params needed to run this step."],
+      "required_variables": ["(List[str]) List variables like dataframes, models, config params needed to run this step. MUST ALL BE LOWER-CASED"],
       "required_libs": ["(List[str]) What libraries or tools must be imported to execute this step."],
       "outputs": ["(List[str]) The new variable names or artifacts this step will return."]
     }}
