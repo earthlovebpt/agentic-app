@@ -14,3 +14,10 @@ llm = init_chat_model(
     api_key=OPENAI_API_KEY,
     streaming=False,
 )
+
+bd_llm = init_chat_model(
+    model="gpt-4.1-mini",
+    temperature=0.5,
+    api_key=OPENAI_API_KEY,
+    streaming=False,
+)
