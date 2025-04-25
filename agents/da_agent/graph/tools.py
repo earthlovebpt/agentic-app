@@ -1,5 +1,4 @@
 from langchain_core.tools import tool
-
 from langchain_core.messages import AIMessage
 from typing import Annotated, Tuple
 from langgraph.prebuilt import InjectedState
@@ -12,18 +11,11 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import sklearn
-
+import pickle
+import re
+from typing import Annotated, Tuple, List, Dict
 
 persistent_vars = {}
-plotly_saving_code = """import pickle
-import uuid
-import plotly
-
-for figure in plotly_figures:
-    pickle_filename = f"images/plotly_figures/pickle/{uuid.uuid4()}.pickle"
-    with open(pickle_filename, 'wb') as f:
-        pickle.dump(figure, f)
-"""
 
 @tool(parse_docstring=True)
 def complete_python_task(
@@ -35,33 +27,31 @@ def complete_python_task(
         thought: Internal thought about the next action to be taken, and the reasoning behind it. This should be formatted in MARKDOWN and be high quality.
         python_code: Python code to be executed to perform analyses, create a new dataset or create a visualization.
     """
-    current_variables = graph_state["current_variables"] if "current_variables" in graph_state else {}
-    for input_dataset in graph_state["input_data"]:
-        if input_dataset.variable_name not in current_variables:
-            current_variables[input_dataset.variable_name] = pd.read_csv(input_dataset.data_path)
+    current_variables = graph_state.get("current_variables", {})
     if not os.path.exists("images/plotly_figures/pickle"):
         os.makedirs("images/plotly_figures/pickle")
 
-    current_image_pickle_files = os.listdir("images/plotly_figures/pickle")
     try:
+        print("Executing code...")
+        print(thought)
+        print(python_code)
         # Capture stdout
         old_stdout = sys.stdout
         sys.stdout = StringIO()
 
-        # Execute the code and capture the result
+        # Execute the code
         exec_globals = globals().copy()
         exec_globals.update(persistent_vars)
         exec_globals.update(current_variables)
-        exec_globals.update({"plotly_figures": []})
-
+        exec_globals.update(graph_state['datasets'])
+        exec_globals["plotly_figures"] = {}
 
         exec(python_code, exec_globals)
+
         persistent_vars.update({k: v for k, v in exec_globals.items() if k not in globals()})
 
-        # Get the captured stdout
+        # Get stdout
         output = sys.stdout.getvalue()
-
-        # Restore stdout
         sys.stdout = old_stdout
 
         updated_state = {
@@ -69,16 +59,75 @@ def complete_python_task(
             "current_variables": persistent_vars
         }
 
-        if 'plotly_figures' in exec_globals:
-            exec(plotly_saving_code, exec_globals)
-            # Check if any images were created
-            new_image_folder_contents = os.listdir("images/plotly_figures/pickle")
-            new_image_files = [file for file in new_image_folder_contents if file not in current_image_pickle_files]
-            if new_image_files:
-                updated_state["output_image_paths"] = new_image_files
-            
-            persistent_vars["plotly_figures"] = []
+        # Save figures and paths
+        if "plotly_figures" in exec_globals and isinstance(exec_globals["plotly_figures"], dict):
+            image_records = []
+            for name, fig in exec_globals["plotly_figures"].items():
+                safe_name = re.sub(r"[^\w\-]+", "_", name.strip())  # make it filename-safe
+                pickle_filename = f"images/plotly_figures/pickle/{safe_name}.pickle"
+                with open(pickle_filename, "wb") as f:
+                    pickle.dump(fig, f)
+                image_records.append({
+                    "name": name,
+                    "path": pickle_filename
+                })
+
+            if image_records:
+                updated_state["output_image_paths"] = image_records
+
+            persistent_vars["plotly_figures"] = {}
+        
+        print(output)
 
         return output, updated_state
+
     except Exception as e:
-        return str(e), {"intermediate_outputs": [{"thought": thought, "code": python_code, "output": str(e)}]}
+        sys.stdout = old_stdout
+        print(f"Exception: {e}")
+        return str(e), {
+            "intermediate_outputs": [{"thought": thought, "code": python_code, "output": str(e)}]
+        }
+
+
+@tool(parse_docstring=True)
+def save_final_result(
+    graph_state: Annotated[dict, InjectedState],
+    key_insights: List[str],
+    answer: str,
+    visualizations: List[str]
+) -> Tuple[str, dict]:
+    """
+    Saves the final structured result of the analysis.
+
+    Args:
+        key_insights: A list of key insights extracted from the data.
+        answer: The final answer or conclusion derived from the analysis.
+        visualizations: A list of visualization names (must match names in plotly_figures)
+            that were stored in plotly_figures and are relevant to the answer.
+    """
+    output_image_paths = graph_state.get("output_image_paths", [])
+
+    # Build mapping from name to path from output_image_paths
+    name_to_path = {entry["name"]: entry["path"] for entry in output_image_paths}
+
+    # Construct final_visualizations from names
+    final_visualizations = []
+    for name in visualizations:
+        if name not in name_to_path:
+            raise ValueError(f"Visualization '{name}' not found in saved output_image_paths.")
+        final_visualizations.append({
+            "name": name,
+            "path": name_to_path[name],
+        })
+
+    final_result = {
+        "key_insights": key_insights,
+        "answer": answer,
+        "visualizations": final_visualizations
+    }
+
+    updated_state = {
+        "final_result": final_result
+    }
+
+    return "Structured final result saved successfully.", updated_state
