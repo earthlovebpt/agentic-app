@@ -5,6 +5,12 @@ from agents.llm_config import bd_llm
 from typing import List, Dict, Any
 from agents.bd_agent.prompt.web_summary_prompt import web_summary_prompt, WebSummaryOutput
 from langchain_core.tools import tool
+from .state import BDState
+from ..prompt.advisor_prompt import advisor_chain
+from ..prompt.responder_prompt import responder_chain
+
+from typing import Annotated, Tuple
+from langgraph.prebuilt import InjectedState
 
 
 from tqdm import tqdm
@@ -24,7 +30,7 @@ def search_summary_single(query: str) -> List[str]:
     summaries = []
     for s in scraped:
         tmp = web_summary_chain.invoke({
-            "question": args["query"],
+            "question": query,
             "web_title": s["title"],
             "web_content": s["page_content"]
         })
@@ -34,16 +40,18 @@ def search_summary_single(query: str) -> List[str]:
     return summaries
 
 @tool(parse_docstring=True)
-def search_summary(queries: List[str], show_progress: bool = False) -> List[Dict[str, Any]]:
+def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, queries: List[str], show_progress: bool = True) -> Tuple[str, dict]:
     """
     Search and summarize web content for a list of queries.
 
     Args:
+        thought (str): Your thought on how each queries would help increase the information to fullfill user's request.
         queries (List[str]): A list of search queries.
         show_progress (bool, optional): Whether to show progress bar. Defaults to False.
 
     Returns:
-        List[Dict[str, Any]]: A list of dictionaries containing web content summaries for each query. The keys include 'question' (The search query), 'summaries' (List of summaries)
+        messages (str): Formatted message to be used as tool result
+        search_insights List[Dict[str, Any]]: List of insights generated from the search and summary procedures
     """
 
     if show_progress:
@@ -59,6 +67,81 @@ def search_summary(queries: List[str], show_progress: bool = False) -> List[Dict
     messages = ""
     for summary in summaries:
         messages += f"Question: {summary['question']}\n"
-        messages += f"Summaries: {"\n   - ".join(summary['summaries'])}\n"
+        tmp = "\n  - ".join(summary["summaries"])
+        messages += f"Summaries: {tmp}\n"
 
     return {"messages": messages, "search_insights": summaries}
+
+#Util function to assign insight ID to both data insights and search insights
+def repr_data_insight(data_insights: List[Dict[str, Any]]):
+    return ""
+
+def repr_search_insight(search_insights: List[Dict[str, Any]]):
+
+    repr_insight = []
+    for i, insights in enumerate(search_insights):
+        repr_insight.append(f"[q{i:02d}] {insights['question']}")
+        for j, insight in enumerate(insights["summaries"]):
+            repr_insight.append(f"[q{i:02d}-insight{j:02d}]{insight}")
+
+    return "\n".join(repr_insight)
+
+
+@tool(parse_docstring=True)
+def advise_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str) -> Dict[str, Any]:
+    """
+    From the gathered insights from business's internal data and the search results from website, generate a list of actionable strategies that might suit the user's request
+
+    Args:
+        thought: Your thought on why do you decide that the information is sufficient for generating actionable strategies
+        user_request: The user request that the strategies will try to address
+
+    Returns:
+        messages (str): Formatted message to be used as tool result containing formatted strategy
+        strategies (List[Dict[str, Any]]): List of strategies in its original data structure containing description, detailed plans, ...
+    """
+
+    search_insight_str = repr_search_insight(graph_state.get("search_insights", []))
+    data_insight_str = repr_data_insight(graph_state.get("data_insights", []))
+
+    inputs = {"business_detail": graph_state["business_profile"],
+              "schema_context": graph_state["schema_context"],
+              "user_question": user_request,
+              "search_insights": search_insight_str,
+              "data_insights": data_insight_str}
+    
+    result = advisor_chain.invoke(inputs)
+
+    strategies = [s.model_dump() for s in result.strategies]
+
+    return {"messages": f"Generated Strategies: {str(strategies)}", "strategies": strategies}
+
+@tool(parse_docstring=True)
+def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str) -> Dict[str, Any]:
+    """
+    From the gathered insights from business's internal data and the search results from website, answer the user's question in a grounded way
+
+    Args:
+        thought: Your thought on why do you decide that the information is sufficient for answering the user
+        user_request: The user request that the answer will try to address
+
+    Returns:
+        messages (str): Formatted message to be used as tool result containing formatted answer
+        final_answer (str): Final Answer
+    """
+
+    search_insight_str = repr_search_insight(graph_state.get("search_insights", []))
+    data_insight_str = repr_data_insight(graph_state.get("data_insights", []))
+
+    inputs = {"business_detail": graph_state["business_profile"],
+              "schema_context": graph_state["schema_context"],
+              "user_question": user_request,
+              "search_insights": search_insight_str,
+              "data_insights": data_insight_str}
+    
+    result = responder_chain.invoke(inputs)
+
+    final_answer = result.answer_to_question
+
+    return {"messages": f"Final Answer: {final_answer}", "final_answer": final_answer}
+    

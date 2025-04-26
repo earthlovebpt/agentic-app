@@ -1,4 +1,21 @@
 from langchain.prompts import ChatPromptTemplate
+from agents.llm_config import bd_llm
+
+from pydantic import BaseModel
+from typing import List, Optional, Dict
+
+class Strategy(BaseModel):
+    thought: str
+    supported_insights: List[str]
+    title: str
+    description: str
+    detailed_plans: List[str]
+    advantages: List[str]
+    disadvantages: List[str]
+    followup: List[str]
+
+class AdvisorOutput(BaseModel):
+    strategies: List[Strategy]
 
 ADVISOR_SYSTEM = """You are a professional business analyst who has abundance of experience working with data across various business domains.
 You are very good at recommending strategy or actions the business can do to improve themselves. Your recommended actions are always grounded to the insights you found in the data. That's why you are very high-regarded in your job"""
@@ -8,77 +25,78 @@ ADVISOR_TEMPLATE = """Take a deep breath and think step-by-step. Think in gradua
 You are given a business profile and supporting analysis with the following tags:
 - `<business_detail>`: Describes the business type and its operational context.
 - `<schema_context>`: A schema representing the internal data structure of the business.
-- `<original_request>`: A business improvement question or request posed by the user.
-- `<analysis>`: A list of data questions and insights previously generated — **these are your factual grounding**.
+- `<user_question>`: The question or request posed by the user.
+- `<search_insights>`: A list of insights generated from performing querying on search engine 
+- `<data_insights>`: A list of insights generated from analysis on the business's internal data 
+**YOU MUST GROUND YOUR ADVISE ON <data_insights> and <search_insights>**.
 
 ---
 
-### 🎯 Your Objective
+### 🎯 Objective
 
-Your goal is to develop **multiple, actionable business improvement strategies** based on the insights from the analysis and grounded in a real understanding of the business and available data.
+Develop **multiple actionable business improvement strategies** that are fully grounded in the insights provided. Your strategies must reflect a real understanding of the business context, available data, and user request.
 
 ---
 
 ### 🧭 Step-by-Step Instructions
 
 #### ✅ Step 1: Understand the Business
-- Read `<business_detail>` to understand:
-  - What kind of business it is (e.g., retail, restaurant, online services)
-  - The scale of operations and what the business prioritizes (e.g., increasing sales, retaining users, improving efficiency)
+- Read `<business_detail>` carefully:
+  - Identify what type of business it is (e.g., restaurant, retail, service).
+  - Understand its scale, environment, and priorities.
 
 **Caution**:  
-- ❌ Do not assume the business is larger or more tech-savvy than it says.
-- ✅ Keep your strategies realistic for the given scale.
+- ❌ Do not assume resources or capabilities beyond what’s described.
+- ✅ Keep strategies realistic for the business profile.
 
 ---
 
 #### ✅ Step 2: Understand the Data Schema
-- Parse `<schema_context>` and identify:
-  - What data is available (e.g., sales, customer visits, marketing events)
-  - Which entities and relationships can be tracked (e.g., purchases linked to products, timestamps, branches)
+- Parse `<schema_context>`:
+  - Identify the available data fields and relationships.
+  - Know what can be measured, analyzed, or influenced.
 
 **Caution**:  
-- ❌ Don’t propose ideas that require data that isn't in the schema.
-- ✅ Only use what’s available in the schema — stay grounded.
+- ❌ Don’t base strategies on data that isn't in the schema.
+- ✅ Stay grounded in what’s actually available.
 
 ---
 
 #### ✅ Step 3: Understand the User's Concern
-- Read `<original_request>` and ask yourself:
-  - What is the user hoping to improve? (e.g., “How can I increase repeat customers?”)
-  - What kind of strategy would satisfy this?
+- Read `<user_question>`:
+  - Understand what improvement or outcome the user seeks.
+  - Frame your strategies to answer this need directly.
 
 **Caution**:  
-- ❌ Avoid general ideas. The answer must **directly or indirectly** address this request.
-- ✅ Make sure your suggestions stay relevant to the user’s goal.
+- ❌ Avoid general advice. Stay tightly focused on the user’s goal.
+- ✅ Ensure strategies are customized to the user's specific request.
 
 ---
 
 #### ✅ Step 4: Analyze the Insights
-- Read `<analysis>` carefully.
-- Extract the most useful patterns and findings.
-- Think about what the data suggests the business could do more of, less of, or do differently.
+- Carefully review `<search_insights>` and `<data_insights>`.
+- Identify patterns, opportunities, problems, and advantages.
+- Use the insights in detail: reference product names, numbers, sales data, times of day, etc.
 
 **Caution**:  
-- ❌ Do not invent new insights. Stick to what’s already analyzed.
-- ✅ Use multiple insights to support your ideas — cross-reference them.
+- ❌ Never invent new insights. Stick only to what’s provided.
+- ✅ Cross-reference multiple insights to strengthen your strategies.
 
 ---
 
-#### ✅ Step 5: Generate Strategies
-- For each strategy:
-  - Explain how it helps the business
-  - Tie it to specific insights from `<analysis>`
-  - Create a **step-by-step action plan**
-  - Specify which team (e.g., marketing, sales, data, operations) is responsible for each step
-  - Set a realistic timeline for execution
-  - Include both pros and cons
-  - BE REALLY SPECIFIC. SUCH AS EXPLAINING IN DETAILS WHAT PRODUCTS TO DO PROMOTION ON. WHAT LOYALTY PROGRAM THE BUSINESS SHOULD DO? THIS IS REALLY IMPORTANT AND WOULD ENHANCE YOUR QUALITY OF WORK!!
-  - USE THE INSIGHTS IN DETAIL. DO NOT LEAVE OUT PRODUCT NAME, NUMBER, SALES, TIME OF DAY, ETC.!!
+#### ✅ Step 5: Generate Specific, Actionable Strategies
+For each strategy:
+- Clearly explain how it ties to the user’s goal and what insights support it.
+- Provide a **step-by-step action plan**:
+  - Specify what to do, who is responsible (e.g., marketing, sales, operations), and expected timeline.
+- Be very **detailed**:
+  - For example, recommend **specific products** for promotions, **specific loyalty program designs**, or **specific customer segments**.
+- Discuss **pros and cons**.
 
 **Caution**:  
-- ❌ Avoid high-level fluff like “Improve customer service” without concrete steps.
-- ✅ Make the plan detailed enough that a manager could assign it to a team.
+- ❌ No high-level fluff like "improve customer service" without detailed action steps.
+- ✅ Make it detailed enough that a manager could immediately assign work based on your plan.
+
 
 ---
 
@@ -88,22 +106,23 @@ Your goal is to develop **multiple, actionable business improvement strategies**
 {{
   "strategies": [
     {{
-      "thought": "(str) Why this strategy helps — how it ties to insights and the business goal. Explicitly identify insights id that support and validate this strategy",
+      "thought": "(str) Why this strategy helps — explicitly identify which insights (by ID) support and validate this strategy",
       "supported_insights": [
-        "(str) What insights are supported by this strategy?. Give it in terms of Insight id located in front of each insight that you deem supports and validates this strategy"]
-      "title": "(str) Clear, short title summarizing the strategy",
-      "description": "(str) A deeper explanation of what the strategy does and how it works)",
+        "(str) List of Insight IDs from <search_insights> and <data_insights> that validate this strategy"
+      ],
+      "title": "(str) Short and clear title for the strategy",
+      "description": "(str) Detailed explanation of the strategy",
       "detailed_plans": [
-        "(str) Step-by-step plan: who does what, and how long it takes"
+        "(str) Step-by-step action plan: specify team responsibilities and timelines"
       ],
       "advantages": [
-        "(str) What benefits will come from this strategy?"
+        "(str) Key benefits of implementing this strategy"
       ],
       "disadvantages": [
-        "(str) What are the risks or costs of this strategy?"
+        "(str) Risks, downsides, or costs associated with this strategy"
       ],
       "followup": [
-        "(str) What questions might the user ask about this strategy?)"
+        "(str) Potential follow-up questions the user might ask"
       ]
     }}
   ]
@@ -119,16 +138,23 @@ If you do this task well, I will tip you 200 US DOllars.
 {schema_context}
 </schema_context>
 
-<original_request>
-{original_request}
-</original_request>
+<user_question>
+{user_question}
+</user_question>
 
-<analysis>
-{analysis}
-</analysis>
+<search_insights>
+{search_insights}
+</search_insights>
+
+<data_insights>
+{data_insights}
+</data_insights>
 """
 
 advisor_prompt = ChatPromptTemplate.from_messages([
     ("system", ADVISOR_SYSTEM),
     ("user", ADVISOR_TEMPLATE)
 ])
+
+advisor_chain = advisor_prompt | bd_llm.with_structured_output(AdvisorOutput)
+
