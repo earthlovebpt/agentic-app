@@ -3,7 +3,7 @@ from typing import Literal
 from langgraph.prebuilt import ToolNode
 
 from .state import BDState
-from .tools import search_summary, advise_from_insights, answer_from_insights
+from .tools import search_summary, advise_from_insights, answer_from_insights, analyze_internal_data
 from agents.llm_config import bd_llm
 from ..prompt.bd_prompt import get_bd_prompt
 import ast
@@ -14,8 +14,8 @@ logger = logging.getLogger("stratpilot")
 from langgraph.prebuilt import create_react_agent
 
 
-def get_react_agent():
-    tools = [search_summary, advise_from_insights, answer_from_insights]
+def get_bd_agent():
+    tools = [search_summary, advise_from_insights, answer_from_insights, analyze_internal_data]
 
     agent_node = create_react_agent(
         bd_llm,

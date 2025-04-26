@@ -11,4 +11,5 @@ class BDState(AgentState):
     business_profile: dict = field(default_factory=dict)
     schema_context: str = ""
     strategies: list = field(default_factory=list)
-    answer: str = ""
+    final_answer: str = ""
+    datasets: dict = field(default_factory=dict)

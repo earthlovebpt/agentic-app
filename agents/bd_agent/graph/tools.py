@@ -14,6 +14,12 @@ from langgraph.prebuilt import InjectedState
 from langchain_core.tools.base import InjectedToolCallId
 from langgraph.types import Command
 from langchain_core.messages import ToolMessage
+from utils.sanitize import sanitize
+
+#DA Agent
+from agents.da_agent.graph.state import DAAgentState
+from agents.da_agent.graph.nodes import get_da_agent
+from langchain_core.messages import HumanMessage
 
 
 from tqdm import tqdm
@@ -41,7 +47,7 @@ def search_summary_single(query: str) -> List[str]:
             "web_content": s["page_content"]
         })
 
-        summaries.append(tmp.summary)
+        summaries.append({"url": s["url"], "summary": tmp.summary})
 
     return summaries
 
@@ -73,24 +79,88 @@ def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, qu
     messages = ""
     for summary in summaries:
         messages += f"Question: {summary['question']}\n"
-        tmp = "\n  - ".join(summary["summaries"])
+        tmp = "\n  - ".join([s["summary"] for s in summary["summaries"]])
         messages += f"Summaries: {tmp}\n"
 
     messages = [ToolMessage(messages, tool_call_id=tool_call_id)]
     logger.info(f"[Search Result]: {summaries}")
     return Command(update={"search_insights": graph_state.get("search_insights", []) + summaries, "messages": messages})
 
+@tool(parse_docstring=True)
+def analyze_internal_data(graph_state: Annotated[dict, InjectedState], thought: str, queries: List[str], tool_call_id: Annotated[str, InjectedToolCallId], show_progress: bool = True):
+    """
+    Analyze and extract insight information from the business' internal data. This is useful for finding specific information on the processed business.
+
+    Args:
+    thought (str): Your thought on how each queries would help increase the information to fullfill user's request.
+    queries (List[str]): A list of queries to ask a Data Analyst agent to analyze the internal data to extract insights.
+    show_progress (bool, optional): Whether to show progress bar. Defaults to False.
+
+    Returns:
+        messages (str): Formatted message to be used as tool result
+        data_insights List[Dict[str, Any]]: List of insights generated from the analysis of DA agents
+    """
+    logger.info(f"[Ask DA]: {graph_state['messages']}")
+    if show_progress:
+        queries = tqdm(queries)
+
+    input_datasets = graph_state['datasets']
+    datasets = {sanitize(k): v["data"] for k, v in input_datasets.items()}
+    schema_context = graph_state['schema_context']
+        
+    data_insights = []
+    for query in queries:
+        header = (
+            "\n\nThe following data is available:\n"
+            + schema_context
+        )
+
+        state = DAAgentState(
+            messages=[HumanMessage(content=header),HumanMessage(content=query)],
+            schema_context=schema_context,
+            datasets=datasets,
+            current_variables=[],
+            output_image_paths={},
+            intermediate_outputs=[]
+        )
+
+        da_agent = get_da_agent()
+
+        result = da_agent.invoke(state)
+        data_insights.append({"question": query,
+                              "final_result": result["final_result"],
+                              "intermediate_outputs": result["intermediate_outputs"]})
+
+    messages = ""
+    for insight in data_insights:
+        messages += f"Question: {insight['question']}\n"
+        tmp = "\n  - ".join([s['insight'] for s in insight['final_result']['key_insights']])
+        messages += f"Insights: {tmp}\n"
+        messages += f"Answer: {insight['final_result']['answers']}"
+
+    messages = [ToolMessage(messages, tool_call_id=tool_call_id)]
+    logger.info(f"[Ask DA Result]: {data_insights}")
+    return Command(update={"data_insights": graph_state.get("data_insights", []) + data_insights, "messages": messages})
+
+
 #Util function to assign insight ID to both data insights and search insights
 def repr_data_insight(data_insights: List[Dict[str, Any]]):
-    return ""
+    repr_insight = []
+    for i, insights in enumerate(data_insights):
+        repr_insight.append(f"[q{i:02d}-data] {insights['question']}")
+        for j, insight in enumerate(insights['final_result']['key_insights']):
+            repr_insight.append(f"[q{i:02d}-insight{j:02d}-data]{insight['insight']}")
+        repr_insight.append(f"[q{i:02d}-answer-data]{insights['final_result']['answers']}")
+
+    return "\n".join(repr_insight)
 
 def repr_search_insight(search_insights: List[Dict[str, Any]]):
 
     repr_insight = []
     for i, insights in enumerate(search_insights):
-        repr_insight.append(f"[q{i:02d}] {insights['question']}")
+        repr_insight.append(f"[q{i:02d}-search] {insights['question']}")
         for j, insight in enumerate(insights["summaries"]):
-            repr_insight.append(f"[q{i:02d}-insight{j:02d}]{insight}")
+            repr_insight.append(f"[q{i:02d}-insight{j:02d}-search]{insight}")
 
     return "\n".join(repr_insight)
 
@@ -111,6 +181,7 @@ def advise_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
     logger.info(f"[Advise From Insights]: {graph_state['messages']}")
     search_insight_str = repr_search_insight(graph_state.get("search_insights", []))
     data_insight_str = repr_data_insight(graph_state.get("data_insights", []))
+    # print(data_insight_str)
 
     inputs = {"business_detail": graph_state["business_profile"],
               "schema_context": graph_state["schema_context"],
@@ -151,9 +222,11 @@ def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
     
     result = responder_chain.invoke(inputs)
 
-    final_answer = result.answer_to_question
+    final_answer = result.model_dump()
 
-    messages = [ToolMessage(f"Final Answer: {final_answer}", tool_call_id=tool_call_id)]
+    messages = [ToolMessage(f"Final Answer: {final_answer['answer_to_question']}", tool_call_id=tool_call_id)]
     logger.info(f"[Answer From Insights]: {final_answer}")
     return Command(update={"final_answer": final_answer, "messages": messages})
+
+
     

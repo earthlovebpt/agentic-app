@@ -55,7 +55,7 @@ def complete_python_task(
         sys.stdout = old_stdout
 
         updated_state = {
-            "intermediate_outputs": [{"thought": thought, "code": python_code, "output": output}],
+            "intermediate_outputs": graph_state.get("intermediate_outputs", []) + [{"thought": thought, "code": python_code, "output": output}],
             "current_variables": persistent_vars
         }
 
@@ -84,7 +84,7 @@ def complete_python_task(
         sys.stdout = old_stdout
         print(f"Exception: {e}")
         messages = [ToolMessage(str(e), tool_call_id=tool_call_id)]
-        return Command(update={"messages": messages, "intermediate_outputs": [{"thought": thought, "code": python_code, "output": str(e)}]})
+        return Command(update={"messages": messages, "intermediate_outputs": graph_state.get("intermediate_outputs", []) + [{"thought": thought, "code": python_code, "output": str(e)}]})
 
 @tool(parse_docstring=True)
 def save_final_result(

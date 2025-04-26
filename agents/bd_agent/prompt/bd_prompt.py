@@ -32,7 +32,7 @@ Your objective is to determine the best next step based on this information. Use
    - If the question asks for a **direct factual answer** (e.g., “How much sales were generated last year?”), then extract and answer directly based on the information.
    - If the question is **open-ended or strategic** (e.g., “What menu should I add to my cafe?”), then provide a thoughtful **recommendation** based on the given information.
 
-If you have given either the final answer or strategy or both already, you can end the conversation by not calling any tools!
+If you have given either the final answer or strategy or both already, you can end the conversation by not calling any tools! Before you end the conversation, you MUST CALL EITHER `answer_from_insights` or `advice_from_insights` tools or BOTH! IF YOU FAIL TO DO THIS, YOU WILL GET PUNISHED SEVERELY!
 
 💡 REMEMBER:  
 - Clearly explain your decision-making process before taking any action.  
