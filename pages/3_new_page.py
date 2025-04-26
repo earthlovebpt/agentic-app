@@ -28,7 +28,6 @@ def display_user_input():
     with st.form("question_form", clear_on_submit=True):
         user_question = st.text_input(
             label="Enter your business goal or question:",
-            placeholder="e.g., How can we increase user engagement in Q3?",
             key="question_input"
         )
         submitted = st.form_submit_button("Submit Question")
@@ -52,7 +51,7 @@ def display_sidebar():
     if num_questions == 0:
         st.sidebar.info("No history available.")
     else:
-        display_labels = [f"View Item at Index {i}" for i in range(num_questions)]
+        display_labels = [f"Question: {q[:50]}" for q in st.session_state.user_questions]
         selected_label = st.sidebar.selectbox(
             "Select Index to View:",
             options=display_labels,

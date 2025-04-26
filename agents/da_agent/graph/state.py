@@ -1,15 +1,12 @@
-import operator
-from typing import Sequence, TypedDict, Annotated, List
-from langchain_core.messages import BaseMessage
-from pydantic import Field
-from typing import Dict, Any
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+from langgraph.prebuilt.chat_agent_executor import AgentState
 
-
-class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], operator.add]
-    datasets: Dict[str, Any] = Field(default_factory=dict)  
-    schema_context: str
-    intermediate_outputs: Annotated[List[dict], operator.add]
-    current_variables: dict
-    output_image_paths: Annotated[List[str], operator.add]
-    final_result: dict
+class DAAgentState(AgentState):
+    schema_context: str = ""
+    datasets: Dict[str, Any] = field(default_factory=dict)
+    current_variables: List[str] = field(default_factory=list)
+    output_image_paths: List[Any] = field(default_factory=list)
+    intermediate_outputs: List[str] = field(default_factory=list)
+    header_injected: bool = False
+    final_result: Optional[Dict[str, Any]] = None

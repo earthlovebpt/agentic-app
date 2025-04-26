@@ -13,13 +13,16 @@ import numpy as np
 import sklearn
 import pickle
 import re
-from typing import Annotated, Tuple, List, Dict
+from typing import Annotated, Tuple, List, Dict, Optional
+from langgraph.types import Command
+from langchain_core.messages import ToolMessage
+from langchain_core.tools.base import InjectedToolCallId
 
 persistent_vars = {}
 
 @tool(parse_docstring=True)
 def complete_python_task(
-        graph_state: Annotated[dict, InjectedState], thought: str, python_code: str
+        graph_state: Annotated[dict, InjectedState], thought: str, python_code: str, tool_call_id: Annotated[str, InjectedToolCallId]
 ) -> Tuple[str, dict]:
     """Completes a python task
 
@@ -32,9 +35,6 @@ def complete_python_task(
         os.makedirs("images/plotly_figures/pickle")
 
     try:
-        print("Executing code...")
-        print(thought)
-        print(python_code)
         # Capture stdout
         old_stdout = sys.stdout
         sys.stdout = StringIO()
@@ -43,7 +43,7 @@ def complete_python_task(
         exec_globals = globals().copy()
         exec_globals.update(persistent_vars)
         exec_globals.update(current_variables)
-        exec_globals.update(graph_state['datasets'])
+        exec_globals.update(graph_state.get("datasets", {}))
         exec_globals["plotly_figures"] = {}
 
         exec(python_code, exec_globals)
@@ -76,58 +76,58 @@ def complete_python_task(
                 updated_state["output_image_paths"] = image_records
 
             persistent_vars["plotly_figures"] = {}
-        
-        print(output)
 
-        return output, updated_state
+        messages = [ToolMessage(output, tool_call_id=tool_call_id)]
+        return Command(update={**updated_state, "messages": messages})
 
     except Exception as e:
         sys.stdout = old_stdout
         print(f"Exception: {e}")
-        return str(e), {
-            "intermediate_outputs": [{"thought": thought, "code": python_code, "output": str(e)}]
-        }
-
+        messages = [ToolMessage(str(e), tool_call_id=tool_call_id)]
+        return Command(update={"messages": messages, "intermediate_outputs": [{"thought": thought, "code": python_code, "output": str(e)}]})
 
 @tool(parse_docstring=True)
 def save_final_result(
     graph_state: Annotated[dict, InjectedState],
-    key_insights: List[str],
-    answer: str,
-    visualizations: List[str]
+    key_insights: List[dict],
+    answers: str,
+    blocker: Optional[str],
+    tool_call_id: Annotated[str, InjectedToolCallId]
 ) -> Tuple[str, dict]:
     """
     Saves the final structured result of the analysis.
 
     Args:
-        key_insights: A list of key insights extracted from the data.
-        answer: The final answer or conclusion derived from the analysis.
-        visualizations: A list of visualization names (must match names in plotly_figures)
-            that were stored in plotly_figures and are relevant to the answer.
+        key_insights: A list of dicts, each with: 'insight': str — the finding or conclusion. 'visualization' (optional): List[str] of plot names matching keys in plotly_figures.
+        answers: A final answer strings derived from the analysis.
+        blocker: An optional message describing any blocker encountered during analysis.
     """
     output_image_paths = graph_state.get("output_image_paths", [])
-
-    # Build mapping from name to path from output_image_paths
+    # Map from plot name to stored path
     name_to_path = {entry["name"]: entry["path"] for entry in output_image_paths}
 
-    # Construct final_visualizations from names
-    final_visualizations = []
-    for name in visualizations:
-        if name not in name_to_path:
-            raise ValueError(f"Visualization '{name}' not found in saved output_image_paths.")
-        final_visualizations.append({
-            "name": name,
-            "path": name_to_path[name],
-        })
+    # Resolve visualization names to their paths within each insight
+    for insight_dict in key_insights:
+        if "visualization" in insight_dict and insight_dict["visualization"]:
+            resolved = []
+            for name in insight_dict["visualization"]:
+                if name not in name_to_path:
+                    raise ValueError(f"Visualization '{name}' not found in saved output_image_paths.")
+                resolved.append({"name": name, "path": name_to_path[name]})
+            insight_dict["visualization"] = resolved
 
+    # Build final result payload
     final_result = {
         "key_insights": key_insights,
-        "answer": answer,
-        "visualizations": final_visualizations
+        "answers": answers
     }
+    if blocker:
+        final_result["blocker"] = blocker
 
-    updated_state = {
-        "final_result": final_result
-    }
-
-    return "Structured final result saved successfully.", updated_state
+    # Update state and confirm
+    return Command(update={
+        "final_result": final_result,
+        "messages": [
+            ToolMessage("Final result saved.", tool_call_id=tool_call_id)
+        ]
+    })

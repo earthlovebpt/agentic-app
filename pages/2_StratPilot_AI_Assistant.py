@@ -5,6 +5,7 @@ from graphs.state import AgentState
 import pandas as pd
 import re
 from copy import deepcopy
+from agents.da_agent.da_agent import DA_Agent
 
 def sanitize(name):
     """
@@ -162,23 +163,40 @@ if st.button("Analyze"):
     datasets = deepcopy(st.session_state.datasets)
     schema_context = st.session_state.get("schema_context", "")
     memory_log = st.session_state.get("memory_log", [])
-    
-    answer_state = AgentState(
-        business_profile=profile,
-        datasets=datasets,
-        schema_context=schema_context,
-        user_prompt=user_question,
-        memory_log=memory_log
-    )
 
-    # Build and run the answer graph
-    answer_graph = build_answer_graph()
-    final_state = answer_graph.invoke(answer_state)
+    da_agent = DA_Agent()
+    result = da_agent.user_sent_message(user_question, schema_context, datasets)
 
-    if not final_state['data_sufficient']:
-        st.subheader("🚫 Not Enough Data")
-        st.warning("Not enough data was provided to answer your question.")
-        for rec in final_state['recommendations_if_insufficient']:
-            st.markdown(f"- {rec}")
+    # Print the conversation so far
+    for i, msg in enumerate(da_agent.chat_history):
+        print(f"\nMessage {i+1}:")
+        print(f"Type: {msg.__class__.__name__}")
+        print(f"Content:\n{msg.content}")
+        if hasattr(msg, "tool_calls"):
+            print(f"Tool Calls:\n{msg.tool_calls}")
+
+    # Optional: view images or outputs
+    print("\nGenerated image paths:", da_agent.output_image_paths)
+    print("Intermediate outputs:", da_agent.intermediate_outputs)
+    print("final result:", da_agent.final_result)
+
     
-    display_results(final_state)
+    # answer_state = AgentState(
+    #     business_profile=profile,
+    #     datasets=datasets,
+    #     schema_context=schema_context,
+    #     user_prompt=user_question,
+    #     memory_log=memory_log
+    # )
+
+    # # Build and run the answer graph
+    # answer_graph = build_answer_graph()
+    # final_state = answer_graph.invoke(answer_state)
+
+    # if not final_state['data_sufficient']:
+    #     st.subheader("🚫 Not Enough Data")
+    #     st.warning("Not enough data was provided to answer your question.")
+    #     for rec in final_state['recommendations_if_insufficient']:
+    #         st.markdown(f"- {rec}")
+    
+    # display_results(final_state)

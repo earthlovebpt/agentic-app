@@ -1,66 +1,62 @@
 from langchain_core.messages import HumanMessage
-from .graph.nodes import agent_node, create_available_variables
+from .graph.state import DAAgentState
+from .graph.nodes import agent_node
+from utils.sanitize import sanitize
+import json
 
-class DS_Agent:
+class DA_Agent:
     def __init__(self):
-        # Conversation and state initialization
-        self.chat_history = []                # list of messages (HumanMessage, AIMessage, ToolMessage)
-        self.intermediate_outputs = []        # list of strings for debugging/context
-        self.output_image_paths = {}         # maps message index to image paths
-        self.current_variables = []          # tracks which variables are still available
-
-    def user_sent_message(self, user_query: str, schema_context: str, datasets: dict):
-        """
-        Send a user query to the ReAct agent, injecting the schema header only on the first turn.
-        """
-        # 1️⃣ Prepare messages: header + user query on first turn, else just history + query
-        if not self.chat_history:
-            header_text = (
-                "The following data is available:\n"
-                + schema_context
-                + create_available_variables({
-                    "current_variables": self.current_variables,
-                    "datasets": datasets
-                })
-            )
-            header = HumanMessage(content=header_text)
-            messages = [header, HumanMessage(content=user_query)]
-            # record header for debugging
-            self.intermediate_outputs.append(header_text)
-        else:
-            messages = self.chat_history + [HumanMessage(content=user_query)]
-
-        # 2️⃣ Build the agent state dict
-        state = {
-            "messages": messages,
-            "schema_context": schema_context,
-            "datasets": datasets,
-            "current_variables": self.current_variables,
-            "output_image_paths": []
-        }
-
-        # 3️⃣ Invoke the ReAct agent (LLM + tools internally)
-        result = agent_node.invoke(state)
-
-        # 4️⃣ Update chat history
-        self.chat_history = result.get("messages", [])
-
-        # 5️⃣ Handle new image paths
-        new_images = set(result.get("output_image_paths", [])) - set(sum(self.output_image_paths.values(), []))
-        if new_images:
-            self.output_image_paths[len(self.chat_history) - 1] = list(new_images)
-
-        # 6️⃣ Append any intermediate outputs from the agent
-        if "intermediate_outputs" in result:
-            self.intermediate_outputs.extend(result["intermediate_outputs"])
-
-        # 7️⃣ Update available variables if agent updated them
-        if "current_variables" in result:
-            self.current_variables = result["current_variables"]
+        # initialize conversation and state fields
+        self.chat_history = []            # List of messages: HumanMessage, AIMessage, ToolMessage
+        self.intermediate_outputs = []    # List of strings from header or tools
+        self.output_image_paths = {}      # Dict[int, List[str]]: images per message index
+        self.current_variables = []       # Variables still unused
+        self.final_result = None          # Saved by save_final_result
 
     def reset_chat(self):
-        """Clear all conversation history and reset state."""
-        self.chat_history = []
-        self.intermediate_outputs = []
-        self.output_image_paths = {}
-        self.current_variables = []
+        """Clear all history and reset state."""
+        self.chat_history.clear()
+        self.intermediate_outputs.clear()
+        self.output_image_paths.clear()
+        self.current_variables.clear()
+        self.final_result = None
+
+    def user_sent_message(self, user_query: str, schema_context: str, input_datasets: dict):
+        """
+        Send a query through the ReAct agent node and update local fields.
+        """
+        # Build initial state object
+        # On first turn, header is injected inside call_model
+        datasets = {sanitize(k): v["data"] for k, v in input_datasets.items()}
+
+        header = (
+            "\n\nThe following data is available:\n"
+            + schema_context
+        )
+
+        state = DAAgentState(
+            messages=[HumanMessage(content=header),HumanMessage(content=user_query)],
+            schema_context=schema_context,
+            datasets=datasets,
+            current_variables=self.current_variables.copy(),
+            output_image_paths=self.output_image_paths.copy(),
+            intermediate_outputs=self.intermediate_outputs.copy()
+        )
+
+        result: DAAgentState = agent_node.invoke(state)
+
+        # 1) Update chat history
+        self.chat_history = result["messages"]
+        # 2) Merge intermediate_outputs
+        self.intermediate_outputs.extend(result["intermediate_outputs"])
+        # 3) Update variables
+        self.current_variables = result["current_variables"]
+        # 4) Collect new images
+        # result.output_image_paths is List[str]
+        if result["output_image_paths"]:
+            idx = len(self.chat_history) - 1
+            self.output_image_paths[idx] = result["output_image_paths"]
+        # 5) Update final_result if set
+        if "final_result" in result:
+            self.final_result = result["final_result"]
+            print("final result:", self.final_result)
