@@ -1,4 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate
+from ..graph.state import BDState
+from datetime import datetime
 
 BD_SYSTEM_PROMPT = """You are a helpful business development. You are very good at deciding what to do to improve the business based on user's queries or answer the user's questions.
 Your choice of actions always involve 4 things: 
@@ -6,6 +8,8 @@ Your choice of actions always involve 4 things:
 2. Gather information from business internal data
 3. If the information is enough and the user asks for recommendation, give the recommendation based on the information
 4. If the information is enough and the user asks for direct answer, give the direct answer based on the information.
+
+Today is {date}
 """
 
 BD_INSTRUCTION_PROMPT = """Take a deep breath and think step by step. Start simple, then gradually build toward more complex reasoning.
@@ -50,15 +54,6 @@ Now here’s your task context:
 """
 
 
-def get_bd_prompt(business_profile: dict, schema_context: str):
-
-    bd_prompt = ChatPromptTemplate.from_messages([
-        ("system", BD_SYSTEM_PROMPT),
-        ("user", BD_INSTRUCTION_PROMPT),
-        ("placeholder", "{messages}")
-    ]).partial(
-        schema_context=schema_context,
-        business_profile=business_profile,
-    )
-
-    return bd_prompt
+def get_bd_prompt(state: BDState):
+  bd_prompt = [{"role": "system", "content": BD_SYSTEM_PROMPT.format(date = str(datetime.now().date()))}, {"role": "user", "content": BD_INSTRUCTION_PROMPT.format(schema_context = state["schema_context"], business_profile = state["business_profile"])}] + state["messages"]
+  return bd_prompt

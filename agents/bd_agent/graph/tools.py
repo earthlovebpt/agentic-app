@@ -11,9 +11,15 @@ from ..prompt.responder_prompt import responder_chain
 
 from typing import Annotated, Tuple
 from langgraph.prebuilt import InjectedState
+from langchain_core.tools.base import InjectedToolCallId
+from langgraph.types import Command
+from langchain_core.messages import ToolMessage
 
 
 from tqdm import tqdm
+import logging
+
+logger = logging.getLogger("stratpilot")
 
 # Initialize Tavily Search Tool
 tavily_search_tool = TavilySearch(
@@ -40,7 +46,7 @@ def search_summary_single(query: str) -> List[str]:
     return summaries
 
 @tool(parse_docstring=True)
-def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, queries: List[str], show_progress: bool = True) -> Tuple[str, dict]:
+def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, queries: List[str], tool_call_id: Annotated[str, InjectedToolCallId], show_progress: bool = True) -> Tuple[str, dict]:
     """
     Search and summarize web content for a list of queries.
 
@@ -53,7 +59,7 @@ def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, qu
         messages (str): Formatted message to be used as tool result
         search_insights List[Dict[str, Any]]: List of insights generated from the search and summary procedures
     """
-
+    logger.info(f"[Search and Summary]: {graph_state['messages']}")
     if show_progress:
         queries = tqdm(queries)
         
@@ -70,7 +76,9 @@ def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, qu
         tmp = "\n  - ".join(summary["summaries"])
         messages += f"Summaries: {tmp}\n"
 
-    return {"messages": messages, "search_insights": summaries}
+    messages = [ToolMessage(messages, tool_call_id=tool_call_id)]
+    logger.info(f"[Search Result]: {summaries}")
+    return Command(update={"search_insights": graph_state.get("search_insights", []) + summaries, "messages": messages})
 
 #Util function to assign insight ID to both data insights and search insights
 def repr_data_insight(data_insights: List[Dict[str, Any]]):
@@ -88,7 +96,7 @@ def repr_search_insight(search_insights: List[Dict[str, Any]]):
 
 
 @tool(parse_docstring=True)
-def advise_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str) -> Dict[str, Any]:
+def advise_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str, tool_call_id: Annotated[str, InjectedToolCallId]) -> Dict[str, Any]:
     """
     From the gathered insights from business's internal data and the search results from website, generate a list of actionable strategies that might suit the user's request
 
@@ -100,7 +108,7 @@ def advise_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
         messages (str): Formatted message to be used as tool result containing formatted strategy
         strategies (List[Dict[str, Any]]): List of strategies in its original data structure containing description, detailed plans, ...
     """
-
+    logger.info(f"[Advise From Insights]: {graph_state['messages']}")
     search_insight_str = repr_search_insight(graph_state.get("search_insights", []))
     data_insight_str = repr_data_insight(graph_state.get("data_insights", []))
 
@@ -114,10 +122,12 @@ def advise_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
 
     strategies = [s.model_dump() for s in result.strategies]
 
-    return {"messages": f"Generated Strategies: {str(strategies)}", "strategies": strategies}
+    messages = [ToolMessage(f"Generated Strategies: {str(strategies)}", tool_call_id=tool_call_id)]
+    logger.info(f"[Advise From Insights]: {strategies}")
+    return Command(update={"strategies": strategies, "messages": messages})
 
 @tool(parse_docstring=True)
-def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str) -> Dict[str, Any]:
+def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str, tool_call_id: Annotated[str, InjectedToolCallId]) -> Dict[str, Any]:
     """
     From the gathered insights from business's internal data and the search results from website, answer the user's question in a grounded way
 
@@ -129,7 +139,7 @@ def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
         messages (str): Formatted message to be used as tool result containing formatted answer
         final_answer (str): Final Answer
     """
-
+    logger.info(f"[Answer From Insights]: {graph_state['messages']}")
     search_insight_str = repr_search_insight(graph_state.get("search_insights", []))
     data_insight_str = repr_data_insight(graph_state.get("data_insights", []))
 
@@ -143,5 +153,7 @@ def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
 
     final_answer = result.answer_to_question
 
-    return {"messages": f"Final Answer: {final_answer}", "final_answer": final_answer}
+    messages = [ToolMessage(f"Final Answer: {final_answer}", tool_call_id=tool_call_id)]
+    logger.info(f"[Answer From Insights]: {final_answer}")
+    return Command(update={"final_answer": final_answer, "messages": messages})
     
