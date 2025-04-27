@@ -81,15 +81,15 @@ def display_agent_result_answer():
                     st.markdown("#### Detailed Plans")
                     for plan in strategy['detailed_plans']:
                         st.markdown(plan)
-                    st.markdown("Advantages and Disadvantages")
+                    st.markdown("#### Advantages and Disadvantages")
                     max_len = max(len(strategy['advantages']), len(strategy['disadvantages']))
                     advantages = strategy['advantages'] + [''] * (max_len - len(strategy['advantages']))
                     disadvantages = strategy['disadvantages'] + [''] * (max_len - len(strategy['disadvantages']))
                     df = pd.DataFrame({"Advantages": advantages, "Disadvantages": disadvantages})
                     st.table(df)
-                    st.markdown("Follow up Questions")
+                    st.markdown("#### Follow up Questions")
                     for followup in strategy['followup']:
-                        st.markdown(followup)
+                        st.markdown("- {followup}")
 
 def display_insights():
     num_questions = len(st.session_state.user_questions)
