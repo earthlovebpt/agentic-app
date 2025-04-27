@@ -60,3 +60,5 @@ class DA_Agent:
         if "final_result" in result:
             self.final_result = result["final_result"]
             print("final result:", self.final_result)
+
+        return result

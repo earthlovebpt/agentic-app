@@ -4,6 +4,8 @@ from graphs.state import AgentState
 import pandas as pd
 from copy import deepcopy
 from agents.sample import RESPONSE
+from agents.da_agent.da_agent import DA_Agent
+import pickle
 
 # change tab css (font_size = 1rem as default)
 TAB_CSS = '''
@@ -13,7 +15,18 @@ TAB_CSS = '''
     }
 </style>
 '''
-
+def bd_agent_run(quetion,schema_context,datasets):
+    questions = ["Which products have the highest sales volume",
+                 "What are the peak transaction times during the day",
+                 "How do sales and customer visits vary across the different sales outlets"]
+    da_results = []
+    for question_ in questions:
+        da_agent = DA_Agent()
+        da_result = da_agent.user_sent_message(question_, schema_context, datasets)
+        da_results.append({'question':question_,'response':da_result})
+    result = {'da_result':da_results,'user_question':quetion}
+    return result
+    
 
 def init_session_states():
     if "user_questions" not in st.session_state:
@@ -35,8 +48,10 @@ def display_user_input():
         if submitted:
             if user_question and user_question.strip():
                 st.session_state.user_questions.append(user_question.strip())
-                st.session_state.responses.append(RESPONSE)
-                st.rerun()
+                with st.spinner("Generating response..."):
+                    response = bd_agent_run(user_question.strip(),st.session_state.schema_context, st.session_state.datasets)
+                    st.session_state.responses.append(response)
+                    st.rerun()
             else:
                 st.warning("Please enter a question before submitting.")
     st.divider()
@@ -80,22 +95,22 @@ def display_chat_container():
     Display chat history of the user and the agents.
     """
     
-    chat_container = st.container()
-    with chat_container:
-        num_questions = len(st.session_state.user_questions)
-        if num_questions == 0:
-            pass
-        else:
-            question = st.session_state.user_questions[st.session_state.selected_index]
-            response = st.session_state.responses[st.session_state.selected_index]
+    # chat_container = st.container()
+    # with chat_container:
+    #     num_questions = len(st.session_state.user_questions)
+    #     if num_questions == 0:
+    #         pass
+    #     else:
+    #         question = st.session_state.user_questions[st.session_state.selected_index]
+    #         response = st.session_state.responses[st.session_state.selected_index]
 
-            with st.chat_message("User"):
-                st.markdown(f"{question}")
+    #         with st.chat_message("User"):
+    #             st.markdown(f"{question}")
             
-            # Display agent chats.
-            for message in response["messages"]:
-                with st.chat_message("Ai"):
-                    st.markdown(format_message(message))
+    #         # Display agent chats.
+    #         for message in response["messages"]:
+    #             with st.chat_message("Ai"):
+    #                 st.markdown(format_message(message))
 
 
 def display_insights():
@@ -105,31 +120,38 @@ def display_insights():
     else:
         response = st.session_state.responses[st.session_state.selected_index]
          # Display insights.
-        for item in response["insights"]:
-            insight = item["insight"]
-            bd_question = item["bd_question"]
-            with st.expander(f"❓ {bd_question}"):
-                if 'text' in insight:
-                    st.write(insight['text'])
-                if 'visual' in insight:
-                    st.plotly_chart(insight['visual'], use_container_width=True)
+        for item in response["da_result"]:
+            da_responses = item["response"]
+            question = item["question"]
+            with st.expander(f"❓ {question}"):
+                final_result = da_responses["final_result"]
+                key_insights = final_result["key_insights"]
+                for key_insight in key_insights:
+                    if 'insight' in key_insight:
+                        st.write(key_insight['insight'])
+                    if 'visualization' in key_insight:
+                        for visualization in key_insight['visualization']:
+                            with open(visualization['path'], 'rb') as file:
+                                plotly_figure = pickle.load(file)
+                            st.plotly_chart(plotly_figure, use_container_width=True)
 
         
 
 def display_steps():
-    num_questions = len(st.session_state.user_questions)
-    if num_questions == 0:
-        pass
-    else:
-        response = st.session_state.responses[st.session_state.selected_index]
-        for idx, item in enumerate(response["steps"]):
-            with st.expander(f"Step {idx+1}"):
-                if 'thought' in item:
-                    st.markdown("### Thought Process")
-                    st.markdown(item['thought'])
-                if 'code' in item:
-                    st.markdown("### Code")
-                    st.code(item['code'], language="python")
+    pass
+    # num_questions = len(st.session_state.user_questions)
+    # if num_questions == 0:
+    #     pass
+    # else:
+    #     response = st.session_state.responses[st.session_state.selected_index]
+    #     for idx, item in enumerate(response["steps"]):
+    #         with st.expander(f"Step {idx+1}"):
+    #             if 'thought' in item:
+    #                 st.markdown("### Thought Process")
+    #                 st.markdown(item['thought'])
+    #             if 'code' in item:
+    #                 st.markdown("### Code")
+    #                 st.code(item['code'], language="python")
 
     
 def debug():
