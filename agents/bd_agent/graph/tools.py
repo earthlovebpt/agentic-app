@@ -137,6 +137,8 @@ def analyze_internal_data(graph_state: Annotated[dict, InjectedState], thought: 
         tmp = "\n  - ".join([s['insight'] for s in insight['final_result']['key_insights']])
         messages += f"Insights: {tmp}\n"
         messages += f"Answer: {insight['final_result']['answers']}"
+        if 'blocker' in insight['final_result']:
+            messages += f"Blocker: {insight['final_result']['blocker']}"
 
     messages = [ToolMessage(messages, tool_call_id=tool_call_id)]
     logger.info(f"[Ask DA Result]: {data_insights}")
