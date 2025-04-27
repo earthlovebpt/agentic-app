@@ -30,10 +30,9 @@ if uploaded_files:
         df = pd.read_csv(file)
         dataset_label = file.name.split(".")[0]
 
-        inferred = {col: col for col in df.columns}
         column_descriptions = {}
-        for col, guess in inferred.items():
-            column_descriptions[col] = f"This column likely represents {guess}."
+        for col in df.columns:
+            column_descriptions[col] = col
 
         st.session_state.datasets[dataset_label] = {
             "data": df,

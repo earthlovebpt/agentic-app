@@ -1,11 +1,10 @@
 import streamlit as st
-from graphs.answer_graph import build_answer_graph
 from graphs.understand_graph import build_understand_graph
 from graphs.state import AgentState
 import pandas as pd
 import re
 from copy import deepcopy
-from agents.da_agent.da_agent import DA_Agent
+from agents.bd_agent.bd_agent import run_bd_agent
 
 def sanitize(name):
     """
@@ -158,45 +157,21 @@ if st.button("Analyze"):
             st.markdown(f"- {err}")
         st.stop()
 
+    if "user_questions" not in st.session_state:
+        st.session_state.user_questions = []
+    if "responses" not in st.session_state:
+        st.session_state.responses = []
+    if "selected_index" not in st.session_state:
+        st.session_state.selected_index = -1
     # Prepare AgentState for the answer phase using updated session_state
     profile = deepcopy(st.session_state.business_profile)
     datasets = deepcopy(st.session_state.datasets)
     schema_context = st.session_state.get("schema_context", "")
-    memory_log = st.session_state.get("memory_log", [])
 
-    da_agent = DA_Agent()
-    result = da_agent.user_sent_message(user_question, schema_context, datasets)
+    st.session_state.user_questions.append(user_question.strip())
+    with st.spinner("Generating response..."):
+        response = run_bd_agent(user_question.strip(),st.session_state.business_profile,st.session_state.schema_context, st.session_state.datasets)
+        st.session_state.responses.append(response)
+    st.switch_page("pages/3_new_page.py") 
 
-    # Print the conversation so far
-    for i, msg in enumerate(da_agent.chat_history):
-        print(f"\nMessage {i+1}:")
-        print(f"Type: {msg.__class__.__name__}")
-        print(f"Content:\n{msg.content}")
-        if hasattr(msg, "tool_calls"):
-            print(f"Tool Calls:\n{msg.tool_calls}")
 
-    # Optional: view images or outputs
-    print("\nGenerated image paths:", da_agent.output_image_paths)
-    print("Intermediate outputs:", da_agent.intermediate_outputs)
-    print("final result:", da_agent.final_result)
-
-    
-    # answer_state = AgentState(
-    #     business_profile=profile,
-    #     datasets=datasets,
-    #     schema_context=schema_context,
-    #     user_prompt=user_question,
-    #     memory_log=memory_log
-    # )
-
-    # # Build and run the answer graph
-    # answer_graph = build_answer_graph()
-    # final_state = answer_graph.invoke(answer_state)
-
-    # if not final_state['data_sufficient']:
-    #     st.subheader("🚫 Not Enough Data")
-    #     st.warning("Not enough data was provided to answer your question.")
-    #     for rec in final_state['recommendations_if_insufficient']:
-    #         st.markdown(f"- {rec}")
-    
-    # display_results(final_state)
