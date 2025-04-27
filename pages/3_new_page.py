@@ -15,6 +15,15 @@ TAB_CSS = '''
 </style>
 '''
 
+def init_state():
+    if "user_questions" not in st.session_state:
+        st.session_state.user_questions = []
+    if "responses" not in st.session_state:
+        st.session_state.responses = []
+    if "selected_index" not in st.session_state:
+        st.session_state.selected_index = -1
+
+
 def display_sidebar():
     """
     Display sidebar where the user can view output from selected questions.
@@ -69,6 +78,7 @@ def display_agent_result_answer():
                 with st.expander(f"Strategy {idx+1}: {strategy['title']}", expanded=True):
                     st.markdown(f"### {strategy['title']}")
                     st.markdown(strategy['description'])
+                    st.markdown("#### Detailed Plans")
                     for plan in strategy['detailed_plans']:
                         st.markdown(plan)
                     st.markdown("Advantages and Disadvantages")
@@ -186,6 +196,7 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
+    init_state()
     display_business_profile()
     display_question()
     display_sidebar()
