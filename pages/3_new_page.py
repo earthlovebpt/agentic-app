@@ -82,10 +82,10 @@ def display_agent_result_answer():
             for idx, strategy in enumerate(strategies):
                 with st.expander(f"Strategy {idx+1}: {strategy['title']}", expanded=True):
                     st.markdown(f"### {strategy['title']}")
-                    st.markdown(strategy['description'])
+                    st.markdown(escape_dollar_for_markdown(strategy['description']))
                     st.markdown("#### Detailed Plans")
                     for plan in strategy['detailed_plans']:
-                        st.markdown(f"- {plan}")
+                        st.markdown(f"- {escape_dollar_for_markdown(plan)}")
                     st.markdown("#### Advantages and Disadvantages")
                     max_len = max(len(strategy['advantages']), len(strategy['disadvantages']))
                     advantages = strategy['advantages'] + [''] * (max_len - len(strategy['advantages']))
