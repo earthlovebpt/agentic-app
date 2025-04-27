@@ -3,8 +3,7 @@ from graphs.understand_graph import build_understand_graph
 from graphs.state import AgentState
 import pandas as pd
 from copy import deepcopy
-from agents.sample import RESPONSE
-from agents.da_agent.da_agent import DA_Agent
+from agents.bd_agent.nodes import get_bd_agent
 import pickle
 
 # change tab css (font_size = 1rem as default)
@@ -16,15 +15,8 @@ TAB_CSS = '''
 </style>
 '''
 def bd_agent_run(quetion,schema_context,datasets):
-    questions = ["Which products have the highest sales volume",
-                 "What are the peak transaction times during the day",
-                 "How do sales and customer visits vary across the different sales outlets"]
-    da_results = []
-    for question_ in questions:
-        da_agent = DA_Agent()
-        da_result = da_agent.user_sent_message(question_, schema_context, datasets)
-        da_results.append({'question':question_,'response':da_result})
-    result = {'da_result':da_results,'user_question':quetion}
+    bd_agent = get_bd_agent()
+    result = bd_agent.user_sent_message(quetion,schema_context,datasets)
     return result
     
 
