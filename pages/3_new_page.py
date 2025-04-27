@@ -15,6 +15,10 @@ TAB_CSS = '''
 </style>
 '''
 
+def escape_dollar_for_markdown(text: str) -> str:
+    """Escape $ signs for safe use in Streamlit's st.markdown."""
+    return text.replace('$', r'\$')
+
 def init_state():
     if "user_questions" not in st.session_state:
         st.session_state.user_questions = []
@@ -71,7 +75,7 @@ def display_agent_result_answer():
         final_answer = response.get("final_answer", None)
         if final_answer:
             st.markdown("### 🎯 Final Answer")
-            st.markdown(final_answer['answer_to_question'])
+            st.write(escape_dollar_for_markdown(final_answer['answer_to_question']))
         if strategies:
             st.markdown("### 🎯 Strategies")
             for idx, strategy in enumerate(strategies):
@@ -89,7 +93,7 @@ def display_agent_result_answer():
                     st.table(df)
                     st.markdown("#### Follow up Questions")
                     for followup in strategy['followup']:
-                        st.markdown("- {followup}")
+                        st.markdown(f"- {followup}")
 
 def display_insights():
     num_questions = len(st.session_state.user_questions)
@@ -109,7 +113,7 @@ def display_insights():
                     key_insights = final_result["key_insights"]
                     for j ,key_insight in enumerate(key_insights):
                         if 'insight' in key_insight:
-                            st.write(key_insight['insight'])
+                            st.write(escape_dollar_for_markdown(key_insight['insight']))
                         if 'visualization' in key_insight:
                             for k,visualization in enumerate(key_insight['visualization']):
                                 with open(visualization['path'], 'rb') as file:
