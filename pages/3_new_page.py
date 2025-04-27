@@ -53,6 +53,7 @@ def display_output(tab_css: str):
     """
     
     # change the css of tabs.
+    display_question()
     st.markdown(tab_css, unsafe_allow_html=True) 
     tab_result, tab_insights, tab_steps = st.tabs(["💬 Result", "📊 Data Insights", "⚙️ Debug"])
     with tab_result:
@@ -84,7 +85,7 @@ def display_agent_result_answer():
                     st.markdown(strategy['description'])
                     st.markdown("#### Detailed Plans")
                     for plan in strategy['detailed_plans']:
-                        st.markdown(plan)
+                        st.markdown(f"- {plan}")
                     st.markdown("#### Advantages and Disadvantages")
                     max_len = max(len(strategy['advantages']), len(strategy['disadvantages']))
                     advantages = strategy['advantages'] + [''] * (max_len - len(strategy['advantages']))
@@ -176,7 +177,11 @@ def display_question():
     """
     Display schema summaries and load datasets.
     """
-    st.markdown(f"### 🎯 Question \n #### {st.session_state.user_questions[st.session_state.selected_index]}")
+    num_questions = len(st.session_state.user_questions)
+    if num_questions == 0:
+        pass
+    else:
+        st.markdown(f"### 🎯 Question \n #### {st.session_state.user_questions[st.session_state.selected_index]}")
 
 def display_suggested_questions():
     """
@@ -202,7 +207,6 @@ def main():
     )
     init_state()
     display_business_profile()
-    display_question()
     display_sidebar()
     display_output(tab_css=TAB_CSS)
     # debug()
