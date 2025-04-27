@@ -102,8 +102,6 @@ for dataset_name, bundle in st.session_state.datasets.items():
         validation_errors.append(f"Dataset `{dataset_name}` is empty.")
     if not description:
         validation_errors.append(f"Dataset `{dataset_name}` has no description.")
-    if not column_descriptions or any(not desc.strip() for desc in column_descriptions.values()):
-        validation_errors.append(f"Dataset `{dataset_name}` has incomplete column descriptions.")
 
 # Check for new datasets (i.e. those that haven’t been explored)
 new_datasets = {}

@@ -90,23 +90,23 @@ def display_insights():
         data_insights = response.get("data_insights", None)
         search_insights = response.get("search_insights", None)
         if data_insights:
-            st.header("📊 Data Insights")
+            st.write("## 📊 Data Insights")
             # Display insights.
-            for item in data_insights:
+            for i, item in enumerate(data_insights):
                 final_result = item["final_result"]
                 question = item["question"]
                 with st.expander(f"❓ {question}",expanded=True):
                     key_insights = final_result["key_insights"]
-                    for key_insight in key_insights:
+                    for j ,key_insight in enumerate(key_insights):
                         if 'insight' in key_insight:
                             st.write(key_insight['insight'])
                         if 'visualization' in key_insight:
-                            for visualization in key_insight['visualization']:
+                            for k,visualization in enumerate(key_insight['visualization']):
                                 with open(visualization['path'], 'rb') as file:
                                     plotly_figure = pickle.load(file)
-                                st.plotly_chart(plotly_figure, use_container_width=True)
+                                st.plotly_chart(plotly_figure,key=f"{question}_{key_insight['insight']}_{i}_{j}_{k}", use_container_width=True)
         if search_insights:
-            st.header("🔍 Search Insights",expanded=True)
+            st.write("## 🔍 Search Insights",expanded=True)
             # Display insights.
             for item in search_insights:
                 summaries = item["summaries"]
