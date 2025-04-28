@@ -36,8 +36,9 @@ If you have given either the final answer or strategy or both already, you can e
 - Be **very specific** about the **business problem** or **question** you want to investigate using internal data.  
 - However, **do not** explicitly mention which **dataframe** or **specific table** to use.  
 - Instead, **describe the type of data** that should be used (e.g., sales data, customer transaction history) to **give data analysts flexibility** in choosing the best source.  
-- **Goal**: Be focused on the **business need**, but **broad enough** to allow **analytical freedom** for the data analyst to design the best solution.
+- **Goal**: Be focused on the **business need**, but **broad enough** (not specifying exactly keys and dataframes) to allow **analytical freedom** for the data analyst to design the best solution.
 - Be **very careful** about when to **answer** and when to **summarize and give advice**. Misjudging this will **greatly impact your performance**.
+- Make sure your queries can extract meaningful insights and not just ask DA to do some task like assigning labels without asking for the statistics of that labels.
 
 💡 REMEMBER:  
 - Clearly explain your decision-making process before taking any action.  
