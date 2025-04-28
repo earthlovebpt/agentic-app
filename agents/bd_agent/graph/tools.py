@@ -8,6 +8,7 @@ from langchain_core.tools import tool
 from .state import BDState
 from ..prompt.advisor_prompt import advisor_chain
 from ..prompt.responder_prompt import responder_chain
+from ..prompt.finalizer_prompt import finalizer_chain
 
 from typing import Annotated, Tuple
 from langgraph.prebuilt import InjectedState
@@ -229,6 +230,39 @@ def answer_from_insights(graph_state: Annotated[dict, InjectedState], user_reque
     messages = [ToolMessage(f"Final Answer: {final_answer['answer_to_question']}", tool_call_id=tool_call_id)]
     logger.info(f"[Answer From Insights]: {final_answer}")
     return Command(update={"final_answer": final_answer, "messages": messages})
+
+@tool(parse_docstring=True)
+def finalize_from_insights(graph_state: Annotated[dict, InjectedState], user_request: str, thought: str, tool_call_id: Annotated[str, InjectedToolCallId]) -> Dict[str, Any]:
+    """
+    From the gathered insights from business's internal data and the search results from website, answer the user's question and (optionally) recommend actionables in a grounded way
+
+    Args:
+        thought: Your thought on why do you decide that the information is sufficient for answering the user
+        user_request: The user request that the answer will try to address
+
+    Returns:
+        messages (str): Formatted message to be used as tool result containing formatted answer
+        final_answer (str): Final Answer
+    """
+    logger.info(f"[Finalize From Insights]: {graph_state['messages']}")
+    search_insight_str = repr_search_insight(graph_state.get("search_insights", []))
+    data_insight_str = repr_data_insight(graph_state.get("data_insights", []))
+
+    inputs = {"business_detail": graph_state["business_profile"],
+              "schema_context": graph_state["schema_context"],
+              "user_question": user_request,
+              "search_insights": search_insight_str,
+              "data_insights": data_insight_str}
+    
+    result = finalizer_chain.invoke(inputs)
+
+    strategies = [s.model_dump() for s in result.strategies]
+    final_answer = result.answer_to_question
+
+    messages = [ToolMessage(f"Final Answer: \n final_answer: {final_answer} \n strategies: {strategies}", tool_call_id=tool_call_id)]
+    logger.info(f"[Finalize From Insights]: \n final_answer: {final_answer} \n strategies: {strategies}")
+
+    return Command(update={"strategies": strategies, "final_answer": final_answer, "messages": messages})
 
 
     
