@@ -93,9 +93,6 @@ def display_agent_result_answer():
                     disadvantages = strategy['disadvantages'] + [''] * (max_len - len(strategy['disadvantages']))
                     df = pd.DataFrame({"Advantages": advantages, "Disadvantages": disadvantages})
                     st.table(df)
-                    st.markdown("#### Follow up Questions")
-                    for followup in strategy['followup']:
-                        st.markdown(f"- {followup}")
 
 def display_insights():
     num_questions = len(st.session_state.user_questions)
