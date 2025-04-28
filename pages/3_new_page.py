@@ -76,7 +76,7 @@ def display_agent_result_answer():
         final_answer = response.get("final_answer", None)
         if final_answer:
             st.markdown("### 🎯 Final Answer")
-            st.write(escape_dollar_for_markdown(final_answer['answer_to_question']))
+            st.write(escape_dollar_for_markdown(final_answer))
         if strategies:
             st.markdown("### 🎯 Strategies")
             for idx, strategy in enumerate(strategies):
