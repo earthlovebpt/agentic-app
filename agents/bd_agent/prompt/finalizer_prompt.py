@@ -71,6 +71,7 @@ You are given the following context:
 5. **Answer the User’s Question**  
    - Provide a direct and precise answer, grounded in the supporting insights.
    - If both answer and strategies are required, answer first, then propose strategies.
+   - DO this in MARKDOWN FORMAT ONLY!!!
 
 6. **Final Checks Before Output**  
    - Ensure every claim or recommendation you make is backed by specific insight IDs.
@@ -109,7 +110,7 @@ You are given the following context:
   "supported_insights": [
     "(str) List of Insight IDs from <search_insights> and <data_insights> that validate this answer"
   ],
-  "answer_to_question": "(str) Short and clear answer to the user question"
+  "answer_to_question": "(str) Short and clear answer to the user question IN MARKDOWN FORMAT ONLY!!!"
 }}```
 
 If you do this task well, I will tip you 200 US Dollars.
