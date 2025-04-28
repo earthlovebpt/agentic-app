@@ -12,7 +12,6 @@ class Strategy(BaseModel):
     detailed_plans: List[str]
     advantages: List[str]
     disadvantages: List[str]
-    followup: List[str]
 
 class FinalizerOutput(BaseModel):
     required_strategies: bool
@@ -66,7 +65,9 @@ You are given the following context:
    - Generate multiple (2–4) practical, realistic strategies.
    - Each strategy must:
      - Be clearly supported by specific insights.
-     - Include detailed action plans, advantages, disadvantages, and possible user follow-up questions.
+     - Be really specific in the detailed plans. No more analyze in the plan since you are already given all the insights!
+     - The detailed plan and plan description must be really specific and specify all names, values if possible. DO NOT BE VAGUE
+     - Include detailed action plans, advantages, disadvantages
 
 5. **Answer the User’s Question**  
    - Provide a direct and precise answer, grounded in the supporting insights.
@@ -91,9 +92,9 @@ You are given the following context:
         "(str) List of Insight IDs from <search_insights> and <data_insights> that validate this strategy"
       ],
       "title": "(str) Short and clear title for the strategy",
-      "description": "(str) Detailed explanation of the strategy",
+      "description": "(str) Detailed explanation of the strategy. BE REALLY THOROUGH KEEPING ALL NAME AND VALUE. DO NOT BE VAGUE",
       "detailed_plans": [
-        "(str) Step-by-step action plan: specify team responsibilities and timelines"
+        "(str) Step-by-step action plan: specify team responsibilities and timelines. No more analysis should be needed since you come up with this based on all available insights"
       ],
       "advantages": [
         "(str) Key benefits of implementing this strategy"
@@ -101,9 +102,6 @@ You are given the following context:
       "disadvantages": [
         "(str) Risks, downsides, or costs associated with this strategy"
       ],
-      "followup": [
-        "(str) Potential follow-up questions the user might ask"
-      ]
     }}.. (If not required_strategies, this should be an empty list)
   ],
   "answer_thought": "(str) Your understanding of insights and question alongside an outline of how to answer the user question",
