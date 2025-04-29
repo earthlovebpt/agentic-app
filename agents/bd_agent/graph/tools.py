@@ -85,7 +85,7 @@ def search_summary(graph_state: Annotated[dict, InjectedState], thought: str, qu
 
     messages = [ToolMessage(messages, tool_call_id=tool_call_id)]
     logger.info(f"[Search Result]: {summaries}")
-    return Command(update={"search_insights": graph_state.get("search_insights", []) + summaries, "messages": messages})
+    return Command(update={"search_insights": summaries, "messages": messages})
 
 @tool(parse_docstring=True)
 def analyze_internal_data(graph_state: Annotated[dict, InjectedState], thought: str, queries: List[str], tool_call_id: Annotated[str, InjectedToolCallId], show_progress: bool = True):
@@ -143,7 +143,7 @@ def analyze_internal_data(graph_state: Annotated[dict, InjectedState], thought: 
 
     messages = [ToolMessage(messages, tool_call_id=tool_call_id)]
     logger.info(f"[Ask DA Result]: {data_insights}")
-    return Command(update={"data_insights": graph_state.get("data_insights", []) + data_insights, "messages": messages})
+    return Command(update={"data_insights": data_insights, "messages": messages})
 
 
 #Util function to assign insight ID to both data insights and search insights

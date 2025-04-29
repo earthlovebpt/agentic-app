@@ -75,8 +75,9 @@ def display_agent_result_answer():
         strategies = response.get("strategies", None)
         final_answer = response.get("final_answer", None)
         if final_answer:
-            st.markdown("### 🎯 Final Answer")
-            st.write(escape_dollar_for_markdown(final_answer))
+            with st.expander("🎯 Final Answer", expanded=True):
+                st.markdown("### 🎯 Final Answer")
+                st.markdown(escape_dollar_for_markdown(final_answer))
         if strategies:
             st.markdown("### 🎯 Strategies")
             for idx, strategy in enumerate(strategies):
@@ -92,9 +93,6 @@ def display_agent_result_answer():
                     disadvantages = strategy['disadvantages'] + [''] * (max_len - len(strategy['disadvantages']))
                     df = pd.DataFrame({"Advantages": advantages, "Disadvantages": disadvantages})
                     st.table(df)
-                    st.markdown("#### Follow up Questions")
-                    for followup in strategy['followup']:
-                        st.markdown(f"- {followup}")
 
 def display_insights():
     num_questions = len(st.session_state.user_questions)
