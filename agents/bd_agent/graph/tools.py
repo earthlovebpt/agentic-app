@@ -26,7 +26,7 @@ from langchain_core.messages import HumanMessage
 from tqdm import tqdm
 import logging
 
-logger = logging.getLogger("stratpilot")
+logger = logging.getLogger("Daisy")
 
 # Initialize Tavily Search Tool
 tavily_search_tool = TavilySearch(

@@ -1,9 +1,9 @@
-from graphs.state import AgentState
+from .graph.state import AgentState
 import pandas as pd
 import logging
 from utils.sanitize import sanitize
 
-logger = logging.getLogger("stratpilot")
+logger = logging.getLogger("Daisy")
 
 def summarize_column(col, series: pd.Series, user_desc: str) -> str:
     dtype = str(series.dtype)

@@ -1,71 +1,13 @@
 import streamlit as st
-from graphs.understand_graph import build_understand_graph
-from graphs.state import AgentState
+from agents.understand_agent.understand_graph import build_understand_graph
+from agents.understand_agent.graph.state import AgentState
 import pandas as pd
 import re
 from copy import deepcopy
 from agents.bd_agent.bd_agent import run_bd_agent
 
-def sanitize(name):
-    """
-    Convert a string into a valid Python variable name.
-    """
-    name = name.lower().strip()
-    name = name.replace(" ", "_").replace("-", "_")
-    name = re.sub(r"\W", "", name)
-    if re.match(r"^\d", name):
-        name = f"df_{name}"
-    return name
-
-def normalize_text(text):
-    normalized_text = text.replace("$","\$")
-    return normalized_text
-
-def display_answer_section(final_state):
-    st.subheader("📌 Answer to Your Question")
-    st.markdown(normalize_text(final_state['answer_to_question']) or "No direct answer was generated.")
-    
-def display_key_insights_section(final_state):
-    st.subheader("🔍 Key Insights")
-    st.markdown(normalize_text(final_state['insight_summary']) or "No insights were generated.")
-        
-def display_recommendations_section(final_state):
-    st.subheader("✅ Recommended Actions")
-    if final_state['recommended_actions']:
-        for action in final_state['recommended_actions']:
-            st.markdown(f"- {normalize_text(action)}")
-    else:
-        st.markdown("No specific recommendations provided.")
-        
-def display_analysis_section(final_state):
-    # Only show charts that are referenced in the final summary texts
-    combined_summary = (final_state['answer_to_question'] or "") + " " + (final_state['insight_summary'] or "")
-    
-    st.subheader("📊 Analysis Visualization")
-    chart_found = False
-    for i, res in enumerate(final_state['results']):
-        # Expect that executor_node sets a chart_id in each result (e.g. "chart_1", "chart_2", etc.)
-        chart_id = res.get("chart_id")
-        # Only show the chart if the chart_id is mentioned in the final summary text
-        if chart_id and chart_id in combined_summary:
-            st.markdown(f'{res.get("chart_id")}: {res.get("chart_title")}')
-            st.image(res.get("chart"), use_container_width=True, caption=f"Chart from Step {i+1} ({chart_id})")
-            chart_found = True
-    if not chart_found:
-        st.info("No charts were referenced in the final summary.")
-        
-def display_results(final_state):
-    with st.container(border=True):
-        display_answer_section(final_state)
-    with st.container(border=True):
-        display_key_insights_section(final_state)
-    with st.container(border=True):
-        display_recommendations_section(final_state)
-    with st.container(border=True):
-        display_analysis_section(final_state)
-
-st.set_page_config(page_title="StratPilot - AI Assistant", layout="wide")
-st.title("StratPilot – Your AI Business Consultant")
+st.set_page_config(page_title="Daisy - AI Assistant", layout="wide")
+st.title("Daisy – Your AI Business Consultant")
 
 # Check business profile
 if "business_profile" not in st.session_state or not st.session_state.business_profile:
@@ -170,6 +112,6 @@ if st.button("Analyze"):
     with st.spinner("Generating response..."):
         response = run_bd_agent(user_question.strip(),st.session_state.business_profile,st.session_state.schema_context, st.session_state.datasets)
         st.session_state.responses.append(response)
-    st.switch_page("pages/3_new_page.py") 
+    st.switch_page("pages/3_Result.py") 
 
 

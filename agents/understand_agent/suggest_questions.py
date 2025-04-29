@@ -1,5 +1,5 @@
-from graphs.state import AgentState
-from llm.chains.suggest_questions import suggest_questions_chain
+from .graph.state import AgentState
+from agents.understand_agent.graph.suggest_questions import suggest_questions_chain
 
 def suggest_questions_node(state: AgentState) -> AgentState:
     result = suggest_questions_chain.invoke({

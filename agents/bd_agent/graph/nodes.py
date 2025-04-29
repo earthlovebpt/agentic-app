@@ -9,7 +9,7 @@ from ..prompt.bd_prompt_v2 import get_bd_prompt
 import ast
 import logging
 
-logger = logging.getLogger("stratpilot")
+logger = logging.getLogger("Daisy")
 
 from langgraph.prebuilt import create_react_agent
 

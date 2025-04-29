@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, END
-from graphs.state import AgentState
-from nodes.explorer import explorer_node
-from nodes.suggest_questions import suggest_questions_node
+from .graph.state import AgentState
+from agents.understand_agent.explorer import explorer_node
+from agents.understand_agent.suggest_questions import suggest_questions_node
 
 def build_understand_graph():
     builder = StateGraph(state_schema=AgentState) 

@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="StratPilot - Business Setup", layout="wide")
-st.title("StratPilot – Business & Data Setup")
+st.set_page_config(page_title="Daisy - Business Setup", layout="wide")
+st.title("Daisy – Business & Data Setup")
 
 # Init state
 if "business_profile" not in st.session_state:
@@ -65,6 +65,6 @@ if st.session_state.datasets:
         st.success(f"Deleted dataset `{name}`")
 
 # Save and proceed
-if st.button("Save & Proceed to StratPilot"):
+if st.button("Save & Proceed to Daisy"):
     st.success("Business information and schema saved.")
-    st.switch_page("pages/2_StratPilot_AI_Assistant.py") 
+    st.switch_page("pages/2_Ask_Daisy.py") 

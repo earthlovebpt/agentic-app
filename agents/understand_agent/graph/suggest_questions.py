@@ -1,6 +1,6 @@
-from llm.llm_config import llm
-from llm.prompts.suggest_questions_prompt import suggest_questions_prompt
-from llm.parsers.suggest_questions_parser import QuestionSuggestions
+from ...llm_config import llm
+from agents.understand_agent.graph.suggest_questions_prompt import suggest_questions_prompt
+from agents.understand_agent.graph.suggest_questions_parser import QuestionSuggestions
 from langchain.output_parsers import PydanticOutputParser
 
 # 🧠 Create the parser
