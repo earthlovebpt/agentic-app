@@ -65,6 +65,7 @@ You are given the following context:
    - Generate multiple (2–4) practical, realistic strategies.
    - Each strategy must:
      - Be clearly supported by specific insights.
+     - Be creative as well!
      - Be really specific in the detailed plans. No more analyze in the plan since you are already given all the insights!
      - The detailed plan and plan description must be really specific and specify all names, values if possible. DO NOT BE VAGUE
      - Include detailed action plans, advantages, disadvantages
