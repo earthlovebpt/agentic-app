@@ -17,3 +17,7 @@ def sanitize(name):
 
 def strip_code_block(content):
     return content.strip().strip("`").replace("python", "").strip()
+
+def escape_dollar_for_markdown(text: str) -> str:
+    """Escape $ signs for safe use in Streamlit's st.markdown."""
+    return text.replace('$', r'\$')

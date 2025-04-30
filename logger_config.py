@@ -1,7 +1,7 @@
 import logging
 
 def setup_logger():
-    logger = logging.getLogger("stratpilot")
+    logger = logging.getLogger("Daisy")
     logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(

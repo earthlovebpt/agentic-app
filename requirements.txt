@@ -6,3 +6,9 @@ matplotlib
 streamlit
 langchain-community
 langchain-openai
+playwright 
+beautifulsoup4 
+html2text
+langchain-tavily
+plotly
+scikit-learn
