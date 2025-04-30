@@ -72,6 +72,8 @@
 
 ![Data Insights](png/data_insights.png)
 
+![Search Insights](png/search_insights.png)
+
 - Lastly, the `Debug` shows the code run by the DA agent when extracting insights from internal data and its thought process on generating the code
 
 ![Debug](png/debug.png)
