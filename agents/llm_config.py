@@ -9,14 +9,14 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 llm = init_chat_model(
-    model="gpt-4.1-mini",
+    model="gpt-4.1",
     temperature=0.3,
     api_key=OPENAI_API_KEY,
     streaming=False,
 )
 
 bd_llm = init_chat_model(
-    model="gpt-4.1-mini",
+    model="gpt-4.1",
     temperature=0.5,
     api_key=OPENAI_API_KEY,
     streaming=False,

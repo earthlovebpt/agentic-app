@@ -108,7 +108,7 @@ def display_insights():
                     key_insights = final_result["key_insights"]
                     for j ,key_insight in enumerate(key_insights):
                         if 'insight' in key_insight:
-                            st.write(escape_dollar_for_markdown(key_insight['insight']))
+                            st.markdown(escape_dollar_for_markdown(key_insight['insight']))
                         if 'visualization' in key_insight:
                             for k,visualization in enumerate(key_insight['visualization']):
                                 with open(visualization['path'], 'rb') as file:

@@ -11,5 +11,5 @@ Daisy is your agentic AI business consultant.
 
 **To get started:**
 1. Go to **Business and Data Setup** to describe your business and upload your data.
-2. Once submitted, you'll be redirected to the **AI Assistant** page where you can ask questions.
+2. Once submitted, you'll be redirected to the **Ask Daisy** page where you can ask questions.
 """)

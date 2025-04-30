@@ -5,7 +5,7 @@ from langgraph.prebuilt import ToolNode
 from .state import BDState
 from .tools import search_summary, advise_from_insights, answer_from_insights, analyze_internal_data, finalize_from_insights
 from agents.llm_config import bd_llm
-from ..prompt.bd_prompt_v2 import get_bd_prompt
+from ..prompt.bd_prompt_v3 import get_bd_prompt
 import ast
 import logging
 
