@@ -43,38 +43,38 @@
   - Actionable answers
   - Strategic recommendations
 
-![Workflow Diagram](images/workflow.png)
+![Workflow Diagram](png/workflow.png)
 
 ## ✨ Features
 
 - When the DAISY application is started, the main page will look like this
 
-![Main Page](images/main_page.png)
+![Main Page](png/main_page.png)
 
 - Next, to let DAISY understand your data, click the Business and Data Setup page and describe your business alongside uploading your csv files.
 
-![SetUp Page](images/data_setup.png)
+![SetUp Page](png/data_setup.png)
 
 - The column description can be adjusted to better describe the data and allow DAISY for more accurate understanding
 
-![Column Description](images/column_description.png)
+![Column Description](png/column_description.png)
 
 - Click `Save & Proceed to Daisy`. DAISY will automatically explored the datasets and suggest question to the user.
 
-![Save and Proceed](images/question_input.png)
+![Save and Proceed](png/question_input.png)
 
 - After the question is processed, DAISY will redirect to `Result` page. The first tab will show the final answer to the question alongside grounded strategies the owner can do to improve the business
 
-![Result](images/result.png)
-![Strat](images/strat.png)
+![Result](png/result.png)
+![Strat](png/strat.png)
 
 - The `data insights` tab show both the insights extracted by DA agent from queries posed by BD agent and the insights extracted from search results. This is for transparency reason for user to check whether the answer is grounded on the insights
 
-![Data Insights](images/data_insights.png)
+![Data Insights](png/data_insights.png)
 
 - Lastly, the `Debug` shows the code run by the DA agent when extracting insights from internal data and its thought process on generating the code
 
-![Debug](images/debug.png)
+![Debug](png/debug.png)
 
 ## 🚀 Getting Started
 
