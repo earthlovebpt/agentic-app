@@ -1,6 +1,5 @@
 from langchain.prompts import ChatPromptTemplate
 from pydantic import BaseModel
-from typing import List, Optional
 
 WEB_SUMMARY_SYSTEM = """
 You are a helpful and analytical assistant who are very good at answering user questions from the scraped web pages obtained from search engine"""

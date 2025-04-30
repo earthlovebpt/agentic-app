@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import pickle
+from utils.sanitize import escape_dollar_for_markdown
 
 # change tab css (font_size = 1rem as default)
 TAB_CSS = '''
@@ -10,10 +11,6 @@ TAB_CSS = '''
     }
 </style>
 '''
-
-def escape_dollar_for_markdown(text: str) -> str:
-    """Escape $ signs for safe use in Streamlit's st.markdown."""
-    return text.replace('$', r'\$')
 
 def init_state():
     if "user_questions" not in st.session_state:
