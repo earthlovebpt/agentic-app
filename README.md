@@ -102,6 +102,6 @@ streamlit run main.py
 
 ## 👥 Contributors
 
-- Norrawee Charnpinyo (Email: *TBD*)  
+- Norrawee Charnpinyo (Email: earthlovebpt@gmail.com)  
 - Pirat Pothavorn (Email: pirat.pot@gmail.com)  
 - Supphaset Engphaiboon (Email: supphaset555@gmail.com)  
